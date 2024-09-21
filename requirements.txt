@@ -1,0 +1,19 @@
+Flask==2.0.3
+Flask-SQLAlchemy==2.5.1
+Flask-Migrate==3.1.0
+Werkzeug==2.0.3
+Jinja2==3.0.3
+itsdangerous==2.1.2  # 使用最新的兼容版本
+click==8.0.3
+gunicorn==20.1.0  # 如果你需要在生产环境中部署 Flask
+pandas==1.4.1  # 用于处理 AI 评估的数据（如果不需要可以去掉）
+matplotlib==3.5.1  # 用于绘图展示 AI 性能数据（可选）
+
+# 安全和密码处理
+Flask-WTF==0.15.1
+WTForms==3.0.0
+email-validator==1.1.3
+
+# 其他依赖项
+SQLAlchemy==1.4.32
+pygame
