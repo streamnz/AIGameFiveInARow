@@ -75,6 +75,7 @@
             border-radius: 10px;
             width: 300px;
             text-align: center;
+            position: relative;
         }
 
         .login-modal-content input {
@@ -99,6 +100,26 @@
         .login-modal-content button:hover {
             background-color: #303f9f;
         }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 25px;
+            height: 25px;
+            background-color: #ff4081;
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            line-height: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-btn:hover {
+            background-color: #e91e63;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +133,7 @@
     <!-- Modal for Login -->
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
+            <div class="close-btn" id="closeModalBtn">&times;</div> <!-- 圆形关闭按钮 -->
             <h2>Please Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
@@ -122,19 +144,24 @@
 
 <script>
     document.getElementById('startGameBtn').addEventListener('click', function() {
-        // Simulate whether the user is logged in
-        var isLoggedIn = false;  // Change this value dynamically based on actual login status
+        // 模拟是否用户已登录
+        var isLoggedIn = false;  // 根据实际登录状态动态改变此值
 
         if (!isLoggedIn) {
-            // If user is not logged in, show the login modal
+            // 如果用户未登录，显示登录模态框
             document.getElementById('loginModal').style.display = 'flex';
         } else {
-            // Otherwise, redirect to the game page
-            window.location.href = '/game/start';  // Assuming this is your game start endpoint
+            // 否则，重定向到游戏页面
+            window.location.href = '/game/start';  // 假设这是你的游戏开始端点
         }
     });
 
-    // Close the modal when clicking outside the modal content
+    // 关闭模态框的函数
+    document.getElementById('closeModalBtn').addEventListener('click', function() {
+        document.getElementById('loginModal').style.display = 'none';
+    });
+
+    // 当点击模态框外部时，关闭模态框
     window.onclick = function(event) {
         var modal = document.getElementById('loginModal');
         if (event.target == modal) {
@@ -142,15 +169,15 @@
         }
     }
 
-    // Handle login button click
+    // 登录按钮点击事件处理
     document.getElementById('loginBtn').addEventListener('click', function() {
-        // Here you would send an AJAX request to your Flask login route
+        // 在此处发送 AJAX 请求到你的 Flask 登录路由
         var username = document.getElementById('username').value;
         var password = document.getElementById('password').value;
 
         if (username && password) {
-            // Perform an AJAX request to authenticate
-            // For simplicity, just redirect to game start
+            // 执行 AJAX 请求进行身份验证
+            // 为简单起见，直接重定向到游戏开始
             window.location.href = '/game/start';
         } else {
             alert('Please enter your credentials.');
