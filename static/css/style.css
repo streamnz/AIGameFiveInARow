@@ -12,7 +12,7 @@ body {
 }
 
 #game-board {
-    background-image: url('../img/board.jpg');
+    background-image: url('images/board.jpg');
     background-size: cover;
     display: grid;
     grid-template-columns: repeat(15, 40px);
@@ -32,13 +32,13 @@ body {
 }
 
 #game-board .black {
-    background-image: url('../img/black_piece.png');
+    background-image: url('images/black_piece.png');
     background-size: contain;
     border-radius: 50%;
 }
 
 #game-board .white {
-    background-image: url('../img/white_piece.png');
+    background-image: url('images/white_piece.png');
     background-size: contain;
     border-radius: 50%;
 }

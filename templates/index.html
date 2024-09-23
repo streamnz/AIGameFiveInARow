@@ -3,14 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gomoku Game</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>StreamNZ - Ultimate Gaming Destination</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: white;
+            height: 100%;
+            background: url('{{ url_for('static', filename='images/background-pic2.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 使内容靠近顶部 */
+            padding-top: 50px; /* 调整此值以更改标题与页面顶部的距离 */
+            height: 100vh;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .start-btn {
+            background-color: #ff4081;
+            color: white;
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:hover {
+            background-color: #e91e63;
+            transform: scale(1.05);
+        }
+
+        .login-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .login-modal-content input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 90%;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .login-modal-content button {
+            background-color: #3f51b5;
+            color: white;
+            font-size: 1rem;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .login-modal-content button:hover {
+            background-color: #303f9f;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div id="game-board"></div>
-        <button id="reset">Reset</button>
+
+<div class="container">
+    <h1>Welcome to StreamNZ!</h1>
+    <h2>Beat AI Player to earn ETH!</h2>
+
+    <button class="start-btn" id="startGameBtn">Start Game</button>
+
+    <!-- Modal for Login -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-modal-content">
+            <h2>Please Login</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginBtn">Login</button>
+        </div>
     </div>
-    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</div>
+
+<script>
+    document.getElementById('startGameBtn').addEventListener('click', function() {
+        // Simulate whether the user is logged in
+        var isLoggedIn = false;  // Change this value dynamically based on actual login status
+
+        if (!isLoggedIn) {
+            // If user is not logged in, show the login modal
+            document.getElementById('loginModal').style.display = 'flex';
+        } else {
+            // Otherwise, redirect to the game page
+            window.location.href = '/game/start';  // Assuming this is your game start endpoint
+        }
+    });
+
+    // Close the modal when clicking outside the modal content
+    window.onclick = function(event) {
+        var modal = document.getElementById('loginModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Handle login button click
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        // Here you would send an AJAX request to your Flask login route
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+
+        if (username && password) {
+            // Perform an AJAX request to authenticate
+            // For simplicity, just redirect to game start
+            window.location.href = '/game/start';
+        } else {
+            alert('Please enter your credentials.');
+        }
+    });
+</script>
+
 </body>
 </html>

@@ -98,9 +98,9 @@ The `requirements.txt` file includes all the Python dependencies required for th
 ## Screenshots
 
 - **Login Page**:
-    ![Login Page](static/img/login_screenshot.png)
+    ![Login Page](static/images/login_screenshot.png)
 - **Game Board**:
-    ![Game Board](static/img/game_board_screenshot.png)
+    ![Game Board](static/images/game_board_screenshot.png)
 
 ## Future Improvements
 
