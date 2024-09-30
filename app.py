@@ -2,6 +2,8 @@ from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config  # 从 config.py 导入配置类
+# 注册蓝图
+
 
 # 创建数据库对象
 db = SQLAlchemy()
@@ -19,10 +21,8 @@ def create_app():
     # 数据库迁移工具
     migrate = Migrate(app, db)
 
-    # 注册蓝图
     from controller.game_controller import game_controller
     from controller.user_controller import user_controller
-
     # 将蓝图注册到应用
     app.register_blueprint(game_controller, url_prefix='/game')
     app.register_blueprint(user_controller, url_prefix='/user')
