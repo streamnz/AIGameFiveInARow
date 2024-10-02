@@ -19,6 +19,9 @@ class UserDAO:
         """
         return User.query.filter_by(username=username).first()
 
+    def get_user_by_email(self, email):
+        return User.query.filter_by(email=email).first()
+
     def update_user_score(self, username, score):
         """
         Update the score for a specific user.

@@ -88,3 +88,23 @@ p {
   font-size: 0.9rem;
   text-align: left; /* 错误信息左对齐 */
 }
+
+
+/* 添加加载动画样式 */
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #007bff; /* 加载动画的主色调 */
+  animation: spin 1s ease-in-out infinite; /* 定义旋转动画 */
+  margin: 20px auto; /* 居中对齐 */
+}
+
+/* 定义旋转动画的关键帧 */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

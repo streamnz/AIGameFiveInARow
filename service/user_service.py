@@ -22,7 +22,7 @@ class UserService:
         """
         Handle user login.
         """
-        user = self.user_dao.get_user_by_username(username)
+        user = self.user_dao.get_user_by_email(username)
         if not user or not check_password_hash(user.password, password):
             return {"status": "error", "message": "Invalid username or password."}
 

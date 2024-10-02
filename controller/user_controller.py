@@ -28,17 +28,19 @@ def register():
 @user_controller.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
+    email = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
+    if not email or not password:
         return jsonify({"status": "error", "message": "Username and password are required."}), 400
 
-    login_result = user_service.login_user(username, password)
+    login_result = user_service.login_user(email, password)
     if login_result["status"] == "error":
         return jsonify({"msg": "Bad username or password"}), 401
 
-    access_token = create_access_token(identity=username)
+    access_token = create_access_token(identity=email)
+
+    print("access_token:{}",access_token)
     return jsonify(access_token=access_token), 200
 
 

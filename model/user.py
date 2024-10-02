@@ -7,11 +7,13 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # hashed password
+    email = db.Column(db.String(100), nullable=False)  # 新增 email 属性
     score = db.Column(db.Integer, default=0)
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, email):
         self.username = username
         self.password = generate_password_hash(password)  # store hashed password
+        self.email = email  # 初始化 email 字段
 
     def check_password(self, password):
         """
