@@ -17,3 +17,4 @@ pygame
 cryptography
 mysql. Connector
 PyMySQL
+Flask-JWT-Extended

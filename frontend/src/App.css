@@ -43,6 +43,9 @@ h2 {
     cursor: pointer;
     transition: 0.3s;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 150px; /* 设置按钮的最小宽度 */
+    max-width: 400px; /* 设置按钮的最大宽度 */
+    width: 50%; /* 可选：设置宽度为父容器的50% */
 }
 
 .start-btn:hover {

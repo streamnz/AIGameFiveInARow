@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify, session
+from flask_jwt_extended import create_access_token
+
 from service.user_service import UserService
 
 user_controller = Blueprint('user_controller', __name__)
@@ -34,11 +36,10 @@ def login():
 
     login_result = user_service.login_user(username, password)
     if login_result["status"] == "error":
-        return jsonify(login_result), 400
+        return jsonify({"msg": "Bad username or password"}), 401
 
-    # Store user in session
-    session['user'] = username
-    return jsonify({"status": "success", "message": "Login successful."})
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token), 200
 
 
 # Logout

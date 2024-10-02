@@ -1,4 +1,7 @@
+import datetime
+
 from flask import Flask, redirect, url_for
+from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config  # 从 config.py 导入配置类
@@ -12,6 +15,9 @@ def create_app():
     # 创建Flask应用
     app = Flask(__name__, static_folder='frontend/build/static', template_folder='frontend/build')
 
+    app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # 替换成你自己的密钥
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)  # 令牌过期时间
+    jwt = JWTManager(app)
 
     # 从Config类加载配置
     app.config.from_object(Config)
@@ -32,7 +38,6 @@ def create_app():
     @app.route('/')
     def index():
         return redirect(url_for('game_controller.index'))
-
     return app
 
 

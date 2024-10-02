@@ -1,0 +1,90 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7); /* 加深背景遮罩 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 确保在最前面 */
+}
+
+.modal-content {
+  background: white;
+  padding: 40px; /* 增加内容的内边距 */
+  border-radius: 10px; /* 轻微圆角 */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* 增加阴影以获得浮动效果 */
+  position: relative;
+  width: 350px; /* 稍微扩大宽度 */
+  max-width: 90%; /* 确保在小屏幕设备上也能显示合适 */
+  text-align: center; /* 文本居中 */
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;  /* 调整按钮的宽度 */
+  height: 20px; /* 调整按钮的高度 */
+  background-color: transparent;  /* 设置为透明背景 */
+  border: none;  /* 移除边框 */
+  font-size: 16px;  /* 调整字体大小 */
+  color: #ff4081;  /* 使用更柔和的主题颜色 */
+  cursor: pointer;  /* 鼠标悬停时显示为可点击 */
+  padding: 0;  /* 移除按钮的内边距 */
+  line-height: 20px;  /* 确保按钮图标垂直居中 */
+  transition: color 0.3s ease;  /* 添加平滑的颜色过渡效果 */
+}
+
+.close-btn:hover {
+  color: #e91e63;  /* 鼠标悬停时颜色变深 */
+}
+
+h3 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333; /* 深色标题 */
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1); /* 轻微阴影效果 */
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border: 1px solid #ccc; /* 增加边框以增强对比度 */
+  border-radius: 6px; /* 圆角输入框 */
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+input:focus {
+  border-color: #007bff; /* 输入框聚焦时的边框颜色 */
+  outline: none; /* 移除默认聚焦边框 */
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px; /* 稍微加大按钮的圆角 */
+  font-size: 1.1rem; /* 稍微增大字体 */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+  transform: scale(1.03); /* 悬停时轻微放大按钮 */
+}
+
+p {
+  color: red;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: left; /* 错误信息左对齐 */
+}
