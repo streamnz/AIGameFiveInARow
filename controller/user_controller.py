@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session
-from flask_jwt_extended import create_access_token
 
 from service.user_service import UserService
+from utils.jwt_util import create_jwt_token, token_required
 
 user_controller = Blueprint('user_controller', __name__)
 user_service = UserService()
@@ -38,14 +38,17 @@ def login():
     if login_result["status"] == "error":
         return jsonify({"msg": "Bad username or password"}), 401
 
-    access_token = create_access_token(identity=email)
+    cur_user = login_result.get("user")
 
-    print("access_token:{}",access_token)
+    access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
+
+    print("access_token:{}", access_token)
     return jsonify(access_token=access_token), 200
 
 
 # Logout
 @user_controller.route('/logout', methods=['POST'])
+@token_required
 def logout():
     session.pop('user', None)
     return jsonify({"status": "success", "message": "Logged out successfully."})
@@ -53,6 +56,7 @@ def logout():
 
 # Get leaderboard
 @user_controller.route('/leaderboard', methods=['GET'])
+@token_required
 def leaderboard():
     leaderboard = user_service.get_leaderboard()
     return jsonify({"status": "success", "leaderboard": leaderboard})

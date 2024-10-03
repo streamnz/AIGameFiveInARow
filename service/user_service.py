@@ -26,7 +26,7 @@ class UserService:
         if not user or not check_password_hash(user.password, password):
             return {"status": "error", "message": "Invalid username or password."}
 
-        return {"status": "success", "message": "Login successful."}
+        return {"status": "success", "user": user}
 
     def get_leaderboard(self):
         """
