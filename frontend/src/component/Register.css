@@ -1,0 +1,117 @@
+/* 模态框容器样式 */
+.register-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 400px; /* 设置与Login相似的最大宽度 */
+    width: 100%;
+}
+
+/* 标题样式 */
+.register-content h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* 表单组样式 */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: none; /* 隐藏标签，与Login表单一致 */
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;  /* 字体大小和login一致 */
+}
+
+/* 错误提示信息样式 */
+.error {
+    color: red;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* 按钮容器 */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* 注册和取消按钮通用样式 */
+.register-btn, .cancel-btn {
+    padding: 10px 15px; /* 调整按钮的大小 */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 48%; /* 设置两个按钮宽度一致 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background-color 0.3s ease;  /* 添加背景色渐变效果 */
+}
+
+/* 注册按钮样式 */
+.register-btn {
+    background-color: #007bff; /* 默认颜色 */
+    color: white;
+}
+
+/* 注册按钮悬停效果 */
+.register-btn:hover {
+    background-color: #0056b3; /* 悬停颜色 */
+}
+
+/* 取消按钮样式 */
+.cancel-btn {
+    background-color: #dc3545; /* 默认取消按钮颜色 */
+    color: white;
+}
+
+/* 取消按钮悬停效果 */
+.cancel-btn:hover {
+    background-color: #c82333; /* 悬停颜色 */
+}
+
+/* 禁用状态样式，注册和取消按钮 */
+.register-btn:disabled, .cancel-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* 加载中的样式 */
+.loading-spinner {
+    margin-right: 10px; /* 给加载中的按钮增加一个小的右边距 */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+}
+
+/* 加载旋转动画 */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

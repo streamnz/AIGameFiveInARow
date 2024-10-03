@@ -6,17 +6,16 @@ class UserService:
     def __init__(self):
         self.user_dao = UserDAO()
 
-    def register_user(self, username, password):
+    def register_user(self, username, password, email):
         """
         Register a new user.
         """
-        existing_user = self.user_dao.get_user_by_username(username)
+        existing_user = self.user_dao.get_user_by_email(email)
         if existing_user:
-            return {"status": "error", "message": "Username already exists."}
+            return {"status": "error", "message": "Email already exists."}
 
-        hashed_password = generate_password_hash(password)
-        self.user_dao.add_user(username, hashed_password)
-        return {"status": "success", "message": "User registered successfully."}
+        user = self.user_dao.add_user(username, password, email)
+        return {"status": "success", "message": "User registered successfully.", "user": user}
 
     def login_user(self, username, password):
         """

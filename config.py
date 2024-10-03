@@ -1,7 +1,8 @@
 import os
-from datetime import datetime
 
 from cryptography.fernet import Fernet
+import logging
+
 
 class Config:
     # MySQL Database Configuration
@@ -26,3 +27,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{decrypted_password}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.urandom(24)  # A random secret key for Flask security features
+
+    LOG_LEVEL = logging.DEBUG  # 日志级别可以是 DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

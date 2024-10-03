@@ -1,17 +1,19 @@
 from app import db  # 保持不变，因为 `db` 在 `app.py` 中已全局定义
 from model.user import User
 
+
 class UserDAO:
     def __init__(self):
         pass
 
-    def add_user(self, username, hashed_password):
+    def add_user(self, username, password, email):
         """
         Register a new user with a hashed password.
         """
-        user = User(username=username, password=hashed_password)
+        user = User(username=username, password=password, email=email)
         db.session.add(user)
         db.session.commit()
+        return user
 
     def get_user_by_username(self, username):
         """

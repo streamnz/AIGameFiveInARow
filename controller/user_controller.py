@@ -13,15 +13,27 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    email = data.get('email')
 
-    if not username or not password:
-        return jsonify({"status": "error", "message": "Username and password are required."}), 400
+    if not username:
+        return jsonify({"status": "error", "message": "Username is required."}), 400
 
-    registration_result = user_service.register_user(username, password)
+    if not password:
+        return jsonify({"status": "error", "message": "Password is required."}), 400
+
+    if not email:
+        return jsonify({"status": "error", "message": "Email is required."}), 400
+
+    registration_result = user_service.register_user(username, password, email)
     if registration_result["status"] == "error":
         return jsonify(registration_result), 400
 
-    return jsonify({"status": "success", "message": "User registered successfully."})
+    ## login process
+    cur_user = registration_result.get("user")
+    access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
+    session[cur_user.email] = access_token
+
+    return jsonify({"status": "success", "message": "User registered successfully.", "access_token": access_token})
 
 
 # User login
@@ -42,7 +54,7 @@ def login():
 
     access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
 
-    session[email]=access_token
+    session[email] = access_token
 
     print("access_token:{}", access_token)
     return jsonify(access_token=access_token), 200
