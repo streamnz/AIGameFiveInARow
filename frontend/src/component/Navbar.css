@@ -1,0 +1,68 @@
+/* Navbar容器 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222;  /* 更暗的背景，搭配高对比度文字 */
+  padding: 10px 20px;
+  color: white;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 添加轻微阴影效果 */
+}
+
+/* 左侧 StreamNZ 标题 */
+.navbar-left h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #f0f0f0;  /* 更亮的文字颜色 */
+}
+
+/* 右侧内容容器 */
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* 登录和注册按钮 */
+.auth-buttons button {
+  margin-left: 15px;
+  padding: 8px 16px;
+  background-color: #ff6347;  /* 亮红色，突出重要按钮 */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-buttons button:hover {
+  background-color: #ff4500;  /* hover 时更深的红色 */
+}
+
+/* 用户信息显示 */
+.user-info span {
+  margin-right: 15px;
+  font-size: 16px;
+  color: #fff;  /* 白色字体，清晰显示 */
+}
+
+/* 设置按钮 */
+.settings-btn {
+  padding: 8px 16px;
+  background-color: #4caf50;  /* 绿色背景，代表设置 */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.settings-btn:hover {
+  background-color: #388e3c;  /* hover 时的深绿色 */
+}
