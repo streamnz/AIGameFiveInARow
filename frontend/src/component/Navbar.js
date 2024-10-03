@@ -1,6 +1,7 @@
 import React from 'react';
 import './Navbar.css';
-import axios from "axios";  // 引入样式文件
+import axios from "axios";
+import {parseJwt} from "./jwt_util";  // 引入样式文件
 
 function Navbar({loggedInUser, onLoginClick, onRegisterClick, onLogoutSuccess}) {
 
@@ -22,6 +23,8 @@ function Navbar({loggedInUser, onLoginClick, onRegisterClick, onLogoutSuccess}) 
                     'Authorization': `Bearer ${token}`  // 在请求头中设置 token
                 }
             });
+
+            console.log("logout successfully!",parseJwt(token))
 
             // 清空 localStorage
             localStorage.removeItem('jwtToken');
