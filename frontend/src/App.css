@@ -117,3 +117,11 @@ h2 {
 .close-btn:hover {
     background-color: #e91e63;
 }
+.user-info {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 1.2em;
+    color: #fff;  /* 或者你想要的其他颜色 */
+}
+

@@ -5,7 +5,7 @@ import axios from 'axios';
 import { parseJwt } from './jwt_util';
 
 
-const LoginModal = ({isOpen, onClose}) => {
+const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -40,13 +40,15 @@ const LoginModal = ({isOpen, onClose}) => {
 
             console.log(response)
             const token = response.data.access_token;
-            localStorage.setItem('token', token);
+            localStorage.setItem('jwtToken', token);
             console.log("token:{}", token)
 
             // 解析 JWT token 获取用户信息
             const decoded = parseJwt(token);
             console.log("Logged in as:", decoded.username);
             localStorage.setItem('username', decoded.username);
+
+            onLoginSuccess(decoded)
 
             // 清除错误信息
             setError('');
