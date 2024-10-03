@@ -43,6 +43,12 @@ function App() {
     alert('Register functionality is coming soon!');  // 注册功能
   };
 
+  // 登出成功后，更新UI状态
+  const handleLogoutSuccess = () => {
+    setLoggedInUser(null);  // 重置用户信息
+    setIsModalOpen(false);  // 关闭登录模态框
+  };
+
   return (
     <div className="App">
       {/* 添加 Navbar 组件 */}
@@ -50,6 +56,7 @@ function App() {
         loggedInUser={loggedInUser}
         onLoginClick={handleLoginClick}
         onRegisterClick={handleRegisterClick}
+        onLogoutSuccess={handleLogoutSuccess}
       />
 
       <header className="App-header">

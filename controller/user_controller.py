@@ -42,6 +42,8 @@ def login():
 
     access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
 
+    session[email]=access_token
+
     print("access_token:{}", access_token)
     return jsonify(access_token=access_token), 200
 
@@ -50,7 +52,9 @@ def login():
 @user_controller.route('/logout', methods=['POST'])
 @token_required
 def logout():
-    session.pop('user', None)
+    data = request.get_json()
+    email = data.get('email')
+    session.pop(email, None)
     return jsonify({"status": "success", "message": "Logged out successfully."})
 
 
