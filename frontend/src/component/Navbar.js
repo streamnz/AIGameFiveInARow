@@ -1,7 +1,9 @@
 import React from 'react';
 import './Navbar.css';
-import axios from "axios";
+//import axios from "axios";
 import {parseJwt} from "./jwt_util";  // 引入样式文件
+import apiClient from '../interceptor/axiosConfig';
+
 
 function Navbar({loggedInUser, onLoginClick, onRegisterClick, onLogoutSuccess}) {
 
@@ -18,7 +20,7 @@ function Navbar({loggedInUser, onLoginClick, onRegisterClick, onLogoutSuccess}) 
             }
 
             // 调用后端的登出接口，设置 Authorization 请求头
-            await axios.post('/user/logout', {}, {
+            await apiClient.post('/user/logout', {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`  // 在请求头中设置 token
                 }

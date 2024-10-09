@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import './LoginModal.css';
-import axios from 'axios';
+//import axios from 'axios';
+import apiClient from '../interceptor/axiosConfig';
+
 
 import { parseJwt } from './jwt_util';
 
@@ -34,7 +36,7 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
         console.log(" set loading is true")
 
         try {
-            const response = await axios.post('/user/login', {
+            const response = await apiClient.post('/user/login', {
                 username: username,
                 password: password,
             });

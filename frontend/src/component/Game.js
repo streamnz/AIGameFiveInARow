@@ -1,5 +1,5 @@
-import { io } from "socket.io-client";
-import React, { useEffect, useState, useRef } from 'react';
+import {io} from "socket.io-client";
+import React, {useEffect, useState, useRef} from 'react';
 import './Game.css';
 
 const Game = () => {
@@ -26,7 +26,7 @@ const Game = () => {
         socketRef.current.on('move', (message) => {
             if (message) {
                 console.log('Received move from server:', message);
-                const { x, y, player } = message;
+                const {x, y, player} = message;
                 handleMove(x, y, player, false); // 从服务器接收的移动不发送到服务器
             }
         });
@@ -52,17 +52,20 @@ const Game = () => {
 
     // 处理移动
     const handleMove = (x, y, player, sendToServer = true) => {
+        console.log(`Attempting to move at (${x}, ${y}) by player: ${player}`);
         if (!gameOver && board[x][y] === null) {
             console.log(`Player ${player} placed at (${x}, ${y})`);
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
+
+            // 打印更新后的棋盘状态
+            console.log("After move - Board state:", newBoard);
             setBoard(newBoard);
             setCurrentPlayer(currentPlayer === 'black' ? 'white' : 'black');
 
-            // 如果需要，发送移动到服务器
             if (sendToServer) {
-                socketRef.current.emit('move', { x, y, player });
+                socketRef.current.emit('move', {x, y, player});
             }
 
             checkWinner(newBoard, x, y, player);
@@ -70,6 +73,7 @@ const Game = () => {
             console.log('Invalid move or game over.');
         }
     };
+
 
     // 检查胜利条件
     const checkWinner = (newBoard, x, y, player) => {
@@ -94,7 +98,7 @@ const Game = () => {
             if (count >= 5) {
                 setWinner(player);
                 setGameOver(true);
-                socketRef.current.emit('gameOver', { winner: player });
+                socketRef.current.emit('gameOver', {winner: player});
                 return;
             }
         }
@@ -138,21 +142,28 @@ const Game = () => {
     return (
         <div className="game-container">
             <h2>Gomoku Game</h2>
-            {gameOver ? <h3>Winner: {winner}</h3> : <h3>Current Player: {currentPlayer === playerColor ? 'You' : 'Opponent'}</h3>}
+            {gameOver ? <h3>Winner: {winner}</h3> :
+                <h3>Current Player: {currentPlayer === playerColor ? 'You' : 'Opponent'}</h3>}
             <div className="board" onClick={handleCellClick}>
                 {board.map((row, rowIndex) => (
                     <div key={rowIndex} className="row">
-                        {row.map((cell, colIndex) => (
-                            <div
-                                key={colIndex}
-                                className={`cell`}
-                            >
-                                {cell && <div className={`piece ${cell}`}></div>}
-                            </div>
-                        ))}
+                        {row.map((cell, colIndex) => {
+                            // 输出每个格子的状态，检查是否正确渲染
+                            console.log(`Cell at (${rowIndex}, ${colIndex}) contains:`, cell);
+
+                            return (
+                                <div
+                                    key={colIndex}
+                                    className={`cell`}
+                                >
+                                    {cell && <div className={`piece ${cell}`}></div>}
+                                </div>
+                            );
+                        })}
                     </div>
                 ))}
             </div>
+
         </div>
     );
 };

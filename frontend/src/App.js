@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import LoginModal from './component/LoginModal';
@@ -6,11 +6,10 @@ import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
 import { parseJwt } from './component/jwt_util';
 import Game from './component/Game';  // 假设你已经有 Game 组件
+import {AuthContext, AuthProvider} from './context/AuthContext';
 
 function App() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [loggedInUser, setLoggedInUser] = useState(null);
+    const { isModalOpen, setIsModalOpen, handleLoginSuccess, loggedInUser } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -21,12 +20,12 @@ function App() {
 
         if (token) {
             const userInfo = parseJwt(token);
-            setLoggedInUser(userInfo);
+            handleLoginSuccess(userInfo);
         } else if (currentPath === '/game') {
             // 如果用户未登录且试图访问受保护的 /game 页面时，重定向到首页
             navigate('/');
         }
-    }, [navigate, location.pathname]);  // 加入 location.pathname 来确保只在路径变化时触发
+    }, [navigate, location.pathname, handleLoginSuccess]);
 
     const handleGetStarted = () => {
         if (loggedInUser) {
@@ -38,41 +37,12 @@ function App() {
         }
     };
 
-    const handleLoginClick = () => {
-        setIsModalOpen(true);  // 点击登录按钮，弹出登录模态框
-    };
-
-    const handleRegisterClick = () => {
-        setIsRegisterModalOpen(true);  // 点击注册按钮，弹出注册模态框
-    };
-
-    const handleLoginSuccess = (userInfo) => {
-        setLoggedInUser(userInfo);
-        setIsModalOpen(false);  // 登录成功后关闭模态框
-        navigate('/');  // 登录成功后回到首页，用户可以点击 Start Game
-    };
-
-    const handleLogoutSuccess = () => {
-        setLoggedInUser(null);
-        localStorage.removeItem('jwtToken');  // 清除JWT token
-        if (location.pathname === '/game') {
-            navigate('/');  // 如果用户在游戏页面时登出，跳回首页
-        }
-    };
-
-    const handleRegisterSuccess = (userInfo) => {
-        setLoggedInUser(userInfo);
-        setIsRegisterModalOpen(false);  // 注册成功后关闭模态框
-    };
-
     return (
         <div className="App">
             {/* 导航栏 */}
             <Navbar
                 loggedInUser={loggedInUser}
-                onLoginClick={handleLoginClick}
-                onRegisterClick={handleRegisterClick}
-                onLogoutSuccess={handleLogoutSuccess}
+                onLoginClick={() => setIsModalOpen(true)}
             />
 
             {/* 路由配置 */}
@@ -108,20 +78,18 @@ function App() {
             />
 
             {/* 注册模态框 */}
-            <RegisterModal
-                isOpen={isRegisterModalOpen}
-                onClose={() => setIsRegisterModalOpen(false)}
-                onRegisterSuccess={handleRegisterSuccess}
-            />
+            <RegisterModal isOpen={false} onClose={() => {}} onRegisterSuccess={() => {}} />
         </div>
     );
 }
 
 function AppWithRouter() {
     return (
-        <Router>
-            <App />
-        </Router>
+        <AuthProvider>
+            <Router>
+                <App />
+            </Router>
+        </AuthProvider>
     );
 }
 

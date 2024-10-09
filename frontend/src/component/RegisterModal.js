@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import './Register.css';
-import axios from 'axios';
+//import axios from 'axios';
 import {parseJwt} from "./jwt_util";
+import apiClient from '../interceptor/axiosConfig';
+
 
 function RegisterModal({ isOpen, onClose, onRegisterSuccess }) {
     const [username, setUsername] = useState('');
@@ -42,7 +44,7 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess }) {
 
         try {
             console.log("Sending registration request...");  // 日志：发送注册请求
-            const response = await axios.post('/user/register', {
+            const response = await apiClient.post('/user/register', {
                 username,
                 email,
                 password,
