@@ -23,3 +23,6 @@ Werkzeug~=2.3.5
 mysql-connector-python~=9.0.0
 PyJWT~=2.7.0
 Flask~=2.3.2
+
+
+flask-socketio==5.2.0
