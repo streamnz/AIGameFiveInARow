@@ -1,66 +1,60 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';  // 使用useNavigate代替useHistory
 import LoginModal from './component/LoginModal';
-import RegisterModal from './component/RegisterModal';  // 引入注册组件
-import Navbar from './component/Navbar';  // 引入 Navbar 组件
-
-// 从 jwt_util.js 中导入 parseJwt 函数
-import {parseJwt} from './component/jwt_util';  // 假设 jwt_util.js 在 component 文件夹下
+import RegisterModal from './component/RegisterModal';
+import Navbar from './component/Navbar';
+import { parseJwt } from './component/jwt_util';
+import Game from './component/Game';  // 假设你已经有 Game 组件
 
 function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loggedInUser, setLoggedInUser] = useState(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);  // 注册模态框的状态
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const navigate = useNavigate();  // 使用useNavigate进行页面跳转
 
-
-    // 打开模态框的函数
-    const handleGetStarted = () => {
-        setIsModalOpen(true);  // 点击按钮时打开模态框
-    };
-
-    // 关闭模态框的函数
-    const handleCloseModal = () => {
-        setIsModalOpen(false);  // 点击关闭按钮时关闭模态框
-    };
-
-    // 登录成功时，更新用户信息
-    const handleLoginSuccess = (userInfo) => {
-        setLoggedInUser(userInfo);  // 更新用户状态
-    };
-
-    // 使用 useEffect 钩子来检查 localStorage 中是否有 JWT token
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');  // 从 localStorage 获取 token
+        const token = localStorage.getItem('jwtToken');
         if (token) {
-            const userInfo = parseJwt(token);  // 使用 parseJwt 解析 token
-            console.log("useEffect.parseJwtToken.getUserInfo", userInfo);
-            setLoggedInUser(userInfo);  // 设置用户信息
+            const userInfo = parseJwt(token);
+            setLoggedInUser(userInfo);
         }
     }, []);
 
-    const handleLoginClick = () => {
-        setIsModalOpen(true);  // 显示登录模态框
+    const handleGetStarted = () => {
+        if (loggedInUser) {
+            // 如果已经登录，跳转到游戏页面
+            navigate('/game');
+        } else {
+            // 如果没有登录，显示登录模态框
+            setIsModalOpen(true);
+        }
+    };
+
+    const handleLoginSuccess = (userInfo) => {
+        setLoggedInUser(userInfo);
+        setIsModalOpen(false);  // 登录成功后关闭模态框
+        navigate('/game');  // 登录后直接跳转到游戏页面
     };
 
     const handleRegisterClick = () => {
         setIsRegisterModalOpen(true);
     };
 
-    // 登出成功后，更新UI状态
     const handleLogoutSuccess = () => {
-        setLoggedInUser(null);  // 重置用户信息
-        setIsModalOpen(false);  // 关闭登录模态框
+        setLoggedInUser(null);
+        setIsModalOpen(false);
     };
 
     const handleRegisterSuccess = (userInfo) => {
-        setLoggedInUser(userInfo);  // 更新用户状态
+        setLoggedInUser(userInfo);
     };
 
-    return (<div className="App">
-            {/* 添加 Navbar 组件 */}
+    return (
+        <div className="App">
             <Navbar
                 loggedInUser={loggedInUser}
-                onLoginClick={handleLoginClick}
+                onLoginClick={() => setIsModalOpen(true)}
                 onRegisterClick={handleRegisterClick}
                 onLogoutSuccess={handleLogoutSuccess}
             />
@@ -70,13 +64,19 @@ function App() {
                     <h1>Welcome to Stream NZ!</h1>
                     <h2>Beat AI Player to earn ETH!</h2>
 
-                    {/* 点击按钮时触发模态框弹出 */}
+                    {/* 点击按钮时触发模态框弹出或跳转到游戏页面 */}
                     <button className="start-btn" onClick={handleGetStarted}>Start Game</button>
                 </div>
             </header>
 
-            {/* 模态框组件 */}
-            <LoginModal isOpen={isModalOpen} onClose={handleCloseModal} onLoginSuccess={handleLoginSuccess}/>
+            {/* 路由配置 */}
+            <Routes>
+                <Route exact path="/" element={<div>Home</div>} />
+                <Route path="/game" element={<Game />} />
+            </Routes>
+
+            {/* 登录模态框 */}
+            <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onLoginSuccess={handleLoginSuccess} />
 
             {/* 注册模态框 */}
             <RegisterModal
@@ -85,8 +85,15 @@ function App() {
                 onRegisterSuccess={handleRegisterSuccess}
             />
         </div>
-
     );
 }
 
-export default App;
+function AppWithRouter() {
+    return (
+        <Router>
+            <App />
+        </Router>
+    );
+}
+
+export default AppWithRouter;
