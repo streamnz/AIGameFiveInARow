@@ -31,6 +31,7 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
 
         // 设置 loading 状态为 true，表示请求正在进行
         setLoading(true);
+        console.log(" set loading is true")
 
         try {
             const response = await axios.post('/user/login', {
@@ -59,6 +60,7 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
         } finally {
             // 无论成功还是失败，最终都会取消 loading 状态
             setLoading(false);
+            console.log(" set loading is false")
         }
     };
 
@@ -91,8 +93,8 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
                         />
                     </div>
                     {error && <p style={{color: 'red'}}>{error}</p>}
-                    {loading ? (  // 如果 loading 为 true，显示加载动画
-                        <div className="loading-spinner"></div>
+                    {loading ? (
+                       <div className="loading-spinner-login"></div>
                     ) : (
                         <button type="submit">Login</button>
                     )}

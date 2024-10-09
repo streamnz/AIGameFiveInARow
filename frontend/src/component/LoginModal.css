@@ -91,7 +91,7 @@ p {
 
 
 /* 添加加载动画样式 */
-.loading-spinner {
+.loading-spinner-login {
   display: inline-block;
   width: 40px;
   height: 40px;
