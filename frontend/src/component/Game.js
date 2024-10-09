@@ -133,8 +133,8 @@ const Game = () => {
         return (
             <div className="game-container">
                 <h2>Select your color</h2>
-                <button onClick={() => handleColorSelection('black')}>Play as Black</button>
-                <button onClick={() => handleColorSelection('white')}>Play as White</button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection('black')}>Play as Black</button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection('white')}>Play as White</button>
             </div>
         );
     }

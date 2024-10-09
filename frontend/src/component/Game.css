@@ -43,3 +43,31 @@
 .piece.white {
     background-color: white;
 }
+
+/* 为选择按钮设计的样式，使用 player-select-white-black 类名 */
+.player-select-white-black {
+    background: linear-gradient(135deg, #6a11cb, #2575fc); /* 渐变背景色 */
+    border: none;
+    border-radius: 25px; /* 圆角边框 */
+    color: white;
+    font-size: 18px;
+    padding: 15px 30px;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 动画效果 */
+    margin: 10px auto; /* 自动左右居中 */
+    width: 300px; /* 设置固定宽度 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.player-select-white-black:hover {
+    background: linear-gradient(135deg, #ff512f, #dd2476); /* 悬停时改变背景色 */
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* 增加阴影效果 */
+    transform: scale(1.05); /* 悬停时放大效果 */
+}
+
+.player-select-white-black:active {
+    transform: scale(0.98); /* 点击时缩小效果 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+
