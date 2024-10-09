@@ -23,19 +23,31 @@ apiClient.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// 响应拦截器：捕获401错误，清除token并弹出登录模态框
+// 响应拦截器：捕获非200错误状态，弹出登录模态框和message信息
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => response,  // 成功请求的处理
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // 清除localStorage中的token
-      localStorage.removeItem('jwtToken');
+    if (error.response) {
+      const { status, data } = error.response;
 
-      // 显示LoginModal（通过AuthContext）
-      if (AuthContext._currentValue) {
-        AuthContext._currentValue.handle401Error();  // 调用显示LoginModal的函数
+      // 处理401错误，清除token并显示登录模态框
+      if (status === 401) {
+        localStorage.removeItem('jwtToken');
+
+        if (AuthContext._currentValue) {
+          AuthContext._currentValue.handle401Error();  // 调用显示LoginModal的函数
+        }
       }
+
+      // 处理非200状态，弹出后端返回的message
+      if (status !== 200 && data.message) {
+        alert(data.message);  // 弹出后端返回的message信息
+      }
+    } else {
+      // 如果没有response，显示一个默认错误信息
+      alert('An unexpected error occurred');
     }
+
     return Promise.reject(error);
   }
 );

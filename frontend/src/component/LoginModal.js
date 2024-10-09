@@ -45,7 +45,6 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
             const token = response.data.access_token;
             localStorage.setItem('jwtToken', token);
             console.log("token:{}", token)
-
             // 解析 JWT token 获取用户信息
             const decoded = parseJwt(token);
             console.log("Logged in as:", decoded.username);

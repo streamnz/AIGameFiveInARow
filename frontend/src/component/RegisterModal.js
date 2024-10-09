@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './Register.css';
-//import axios from 'axios';
-import {parseJwt} from "./jwt_util";
+import { parseJwt } from "./jwt_util";
 import apiClient from '../interceptor/axiosConfig';
+import { AuthContext } from '../context/AuthContext';
 
-
-function RegisterModal({ isOpen, onClose, onRegisterSuccess }) {
+function RegisterModal({ isOpen, onClose }) {
+    const { handleRegisterSuccess } = useContext(AuthContext);  // 从 AuthContext 获取状态管理函数
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -20,66 +20,40 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess }) {
         setError('');  // 重置错误消息
         setLoading(true);  // 开始加载
 
-        // 输出表单内容到控制台
-        console.log("Registering with:", {
-            username,
-            email,
-            password,
-            confirmPassword
-        });
-
         if (!emailRegex.test(email)) {
             setError('Invalid email format.');
-            console.log("Error: Invalid email format.");  // 日志：邮箱格式不正确
             setLoading(false);  // 停止加载
             return;
         }
 
         if (password !== confirmPassword) {
             setError('Passwords do not match.');
-            console.log("Error: Passwords do not match.");  // 日志：密码不匹配
             setLoading(false);  // 停止加载
             return;
         }
 
         try {
-            console.log("Sending registration request...");  // 日志：发送注册请求
             const response = await apiClient.post('/user/register', {
                 username,
                 email,
                 password,
             });
 
-            // 处理响应结果
-            console.log("Registration response:", response.data);  // 输出服务器返回的数据
             if (response.data.status === "success") {
-                onRegisterSuccess(response.data);  // 注册成功回调
-                console.log("Registration successful:", response.data);  // 日志：注册成功
-
                 const token = response.data.access_token;
-                localStorage.setItem('jwtToken', token);
-                console.log("token:{}", token)
 
-                // 解析 JWT token 获取用户信息
-                const decoded = parseJwt(token);
-                console.log("Logged in as:", decoded.username);
-                localStorage.setItem('username', decoded.username);
-
-                onRegisterSuccess(decoded)
+                // 通过 AuthContext 更新注册成功后的状态
+                handleRegisterSuccess(token);
 
                 onClose();  // 关闭模态框
             } else if (response.data.status === "error") {
                 setError(response.data.message);  // 设置错误信息
-                console.log("Error:", response.data.message);  // 日志：注册失败信息
-                alert(response.data.message);  // 弹出错误提示
             }
         } catch (err) {
-            console.log("Error: Registration failed.", err);  // 日志：请求失败
-            alert(err);  // 弹出错误提示
+            setError('Registration failed.');
         }
 
-        setLoading(false);  // 请求完成，停止加载
-        console.log("Loading state set to false.");  // 日志：加载状态结束
+        setLoading(false);  // 停止加载
     };
 
     if (!isOpen) return null;

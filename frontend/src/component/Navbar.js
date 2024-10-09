@@ -1,43 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './Navbar.css';
-//import axios from "axios";
-import {parseJwt} from "./jwt_util";  // 引入样式文件
-import apiClient from '../interceptor/axiosConfig';
+import { AuthContext } from '../context/AuthContext';  // 引入 AuthContext
 
+function Navbar({ onLoginClick, onRegisterClick }) {
+    const { loggedInUser, handleLogout } = useContext(AuthContext);  // 从 AuthContext 获取用户信息和登出函数
 
-function Navbar({loggedInUser, onLoginClick, onRegisterClick, onLogoutSuccess}) {
-
-    // 登出函数
-    const handleLogout = async () => {
-        try {
-            // 从 localStorage 获取 JWT token
-            const token = localStorage.getItem('jwtToken');
-
-            // 如果 token 不存在，则直接返回错误
-            if (!token) {
-                console.error("No token found, user might not be logged in.");
-                return;
-            }
-
-            // 调用后端的登出接口，设置 Authorization 请求头
-            await apiClient.post('/user/logout', {}, {
-                headers: {
-                    'Authorization': `Bearer ${token}`  // 在请求头中设置 token
-                }
-            });
-
-            console.log("logout successfully!",parseJwt(token))
-
-            // 清空 localStorage
-            localStorage.removeItem('jwtToken');
-
-            // 调用父组件传入的登出成功函数，更新UI状态
-            onLogoutSuccess();
-
-        } catch (error) {
-            console.error("Logout failed:", error);
-        }
-    };
     return (
         <div className="navbar">
             <div className="navbar-left">

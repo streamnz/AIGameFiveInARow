@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import LoginModal from './component/LoginModal';
@@ -10,6 +10,7 @@ import {AuthContext, AuthProvider} from './context/AuthContext';
 
 function App() {
     const { isModalOpen, setIsModalOpen, handleLoginSuccess, loggedInUser } = useContext(AuthContext);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);  // 添加控制 RegisterModal 的状态
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -30,6 +31,7 @@ function App() {
     const handleGetStarted = () => {
         if (loggedInUser) {
             // 如果已经登录，跳转到游戏页面
+            console.log("Already logged in, jump to /game")
             navigate('/game');
         } else {
             // 如果没有登录，显示登录模态框
@@ -43,6 +45,7 @@ function App() {
             <Navbar
                 loggedInUser={loggedInUser}
                 onLoginClick={() => setIsModalOpen(true)}
+                onRegisterClick={() => setIsRegisterOpen(true)}  // 点击注册时，打开 RegisterModal
             />
 
             {/* 路由配置 */}
@@ -78,7 +81,10 @@ function App() {
             />
 
             {/* 注册模态框 */}
-            <RegisterModal isOpen={false} onClose={() => {}} onRegisterSuccess={() => {}} />
+            <RegisterModal
+                isOpen={isRegisterOpen}  // 使用状态控制 RegisterModal 的打开和关闭
+                onClose={() => setIsRegisterOpen(false)}  // 关闭注册模态框
+            />
         </div>
     );
 }
