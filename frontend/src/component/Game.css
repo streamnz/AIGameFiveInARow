@@ -8,7 +8,7 @@
     color: white;
 }
 
-.board {
+.game-board {
     position: relative;
     width: 600px;
     height: 600px;

@@ -144,15 +144,12 @@ const Game = () => {
             <h2>Gomoku Game</h2>
             {gameOver ? <h3>Winner: {winner}</h3> :
                 <h3>Current Player: {currentPlayer === playerColor ? 'You' : 'Opponent'}</h3>}
-            <div className="board" onClick={handleCellClick}>
+            <div className="game-board" onClick={handleCellClick}>
                 {board.map((row, rowIndex) => (
                     <div key={rowIndex} className="row">
                         {row.map((cell, colIndex) => {
                             return (
-                                <div
-                                    key={colIndex}
-                                    className={`cell`}
-                                >
+                                <div key={colIndex} className={`cell`}>
                                     {cell && <div className={`piece ${cell}`}></div>}
                                 </div>
                             );
