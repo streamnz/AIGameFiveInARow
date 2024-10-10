@@ -1,48 +1,43 @@
-import {io} from "socket.io-client";
-import React, {useEffect, useState, useRef} from 'react';
-import './Game.css';
+import React, { useEffect, useState, useRef } from "react";
+import { io } from "socket.io-client";
+import "./Game.css";
 
 const Game = () => {
     const [board, setBoard] = useState(Array(15).fill().map(() => Array(15).fill(null))); // 初始化15x15的棋盘
-    const [currentPlayer, setCurrentPlayer] = useState('black'); // 当前玩家
+    const [currentPlayer, setCurrentPlayer] = useState("black"); // 当前玩家
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null); // 玩家选择的颜色
     const [opponentColor, setOpponentColor] = useState(null); // 对手的颜色
 
     const socketRef = useRef(null);
-    const boardSize = 600;  // 棋盘的大小
-    const cellSize = 40;    // 每个单元格的大小
+    const boardSize = 600; // 棋盘的大小
+    const cellSize = 40; // 每个单元格的大小
 
     useEffect(() => {
-        // 连接到服务器的 WebSocket
-        socketRef.current = io('http://127.0.0.1:5000');
+        // 使用 Socket.IO 建立 WebSocket 连接
+        socketRef.current = io("http://127.0.0.1:5000");
 
-        socketRef.current.on('connect', () => {
-            console.log('Connected to WebSocket server');
+        socketRef.current.on("connect", () => {
+            console.log("Connected to Socket.IO server");
         });
 
         // 监听来自服务器的移动
-        socketRef.current.on('move', (message) => {
-            if (message) {
-                console.log('Received move from server:', message);
-                const {x, y, player} = message;
-                handleMove(x, y, player, false); // 从服务器接收的移动不发送到服务器
-            }
+        socketRef.current.on("gameState", (message) => {
+            console.log("Received move from server:", message);
+            const { x, y, player } = message;
+            handleMove(x, y, player, false); // 从服务器接收的移动不发送到服务器
         });
 
         // 监听游戏结束
-        socketRef.current.on('gameOver', (message) => {
-            if (message) {
-                console.log('Game over received from server:', message);
-                setWinner(message.winner);
-                setGameOver(true);
-            }
+        socketRef.current.on("gameOver", (message) => {
+            console.log("Game over received from server:", message);
+            setWinner(message.winner);
+            setGameOver(true);
         });
 
-        // 断开连接的处理
-        socketRef.current.on('disconnect', () => {
-            console.log('Disconnected from WebSocket server');
+        socketRef.current.on("disconnect", () => {
+            console.log("Disconnected from Socket.IO server");
         });
 
         return () => {
@@ -52,28 +47,22 @@ const Game = () => {
 
     // 处理移动
     const handleMove = (x, y, player, sendToServer = true) => {
-        console.log(`Attempting to move at (${x}, ${y}) by player: ${player}`);
         if (!gameOver && board[x][y] === null) {
-            console.log(`Player ${player} placed at (${x}, ${y})`);
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
-
-            // 打印更新后的棋盘状态
-            console.log("After move - Board state:", newBoard);
             setBoard(newBoard);
-            setCurrentPlayer(currentPlayer === 'black' ? 'white' : 'black');
+            setCurrentPlayer(currentPlayer === "black" ? "white" : "black");
 
             if (sendToServer) {
-                socketRef.current.emit('move', {x, y, player});
+                socketRef.current.emit("startGame", { x, y, player });
             }
 
             checkWinner(newBoard, x, y, player);
         } else {
-            console.log('Invalid move or game over.');
+            console.log("Invalid move or game over.");
         }
     };
-
 
     // 检查胜利条件
     const checkWinner = (newBoard, x, y, player) => {
@@ -98,7 +87,7 @@ const Game = () => {
             if (count >= 5) {
                 setWinner(player);
                 setGameOver(true);
-                socketRef.current.emit('gameOver', {winner: player});
+                socketRef.current.emit("gameOver", { winner: player });
                 return;
             }
         }
@@ -114,17 +103,18 @@ const Game = () => {
         const x = Math.floor(offsetX / cellSize);
         const y = Math.floor(offsetY / cellSize);
 
+        // 检查是否为玩家的回合并且该格子是否为空
         if (!gameOver && board[x][y] === null && currentPlayer === playerColor) {
             handleMove(x, y, currentPlayer);
         } else {
-            console.log('Invalid move or not your turn.');
+            console.log("Invalid move or not your turn.");
         }
     };
 
     // 玩家选择颜色
     const handleColorSelection = (color) => {
         setPlayerColor(color);
-        setOpponentColor(color === 'black' ? 'white' : 'black');
+        setOpponentColor(color === "black" ? "white" : "black");
         console.log(`Player selected ${color}`);
     };
 
@@ -133,8 +123,8 @@ const Game = () => {
         return (
             <div className="game-container">
                 <h2>Select your color</h2>
-                <button className="player-select-white-black" onClick={() => handleColorSelection('black')}>Play as Black</button>
-                <button className="player-select-white-black" onClick={() => handleColorSelection('white')}>Play as White</button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection("black")}>Play as Black</button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection("white")}>Play as White</button>
             </div>
         );
     }
@@ -143,7 +133,7 @@ const Game = () => {
         <div className="game-container">
             <h2>Gomoku Game</h2>
             {gameOver ? <h3>Winner: {winner}</h3> :
-                <h3>Current Player: {currentPlayer === playerColor ? 'You' : 'Opponent'}</h3>}
+                <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>}
             <div className="game-board" onClick={handleCellClick}>
                 {board.map((row, rowIndex) => (
                     <div key={rowIndex} className="row">
