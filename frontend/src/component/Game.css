@@ -38,10 +38,12 @@
 
 .piece.black {
     background-color: black;
+    z-index: 10; /* 提高 z-index，确保黑子显示在棋盘上方 */
 }
 
 .piece.white {
     background-color: white;
+    z-index: 10; /* 提高 z-index，确保黑子显示在棋盘上方 */
 }
 
 /* 为选择按钮设计的样式，使用 player-select-white-black 类名 */
@@ -68,6 +70,14 @@
 .player-select-white-black:active {
     transform: scale(0.98); /* 点击时缩小效果 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.piece.hover {
+    opacity: 0.5; /* 虚化效果 */
+}
+
+/* 确保虚化棋子在最前面 */
+.cell:hover .piece.hover {
+    z-index: 15;
 }
 
 

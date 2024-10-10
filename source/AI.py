@@ -5,6 +5,7 @@ import source.utils as utils
 sys.setrecursionlimit(1500)
 N = 15  # board size 15x15
 
+
 class GomokuAI():
     def __init__(self, depth=3):
         self.depth = depth  # default depth set to 3
@@ -93,16 +94,17 @@ class GomokuAI():
         length = len(pattern)
         count = 0
         for dir in directions:
-            steps_back = min(5, j_0, i_0) if dir[0] == 1 else min(5, N-1-j_0, i_0)
+            steps_back = min(5, j_0, i_0) if dir[0] == 1 else min(5, N - 1 - j_0, i_0)
             i_start = i_0 - steps_back * dir[1]
             j_start = j_0 - steps_back * dir[0]
             z = 0
             while z <= steps_back:
-                i_new = i_start + z*dir[1]
-                j_new = j_start + z*dir[0]
+                i_new = i_start + z * dir[1]
+                j_new = j_start + z * dir[0]
                 index = 0
                 remember = []
-                while index < length and self.isValid(i_new, j_new, state=False) and self.boardMap[i_new][j_new] == pattern[index]:
+                while index < length and self.isValid(i_new, j_new, state=False) and self.boardMap[i_new][j_new] == \
+                        pattern[index]:
                     if self.isValid(i_new, j_new):
                         remember.append((i_new, j_new))
                     i_new = i_new + dir[1]

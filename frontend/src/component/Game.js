@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { io } from "socket.io-client";
 import "./Game.css";
 
@@ -8,51 +8,55 @@ const Game = () => {
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null); // 玩家选择的颜色
-    const [opponentColor, setOpponentColor] = useState(null); // 对手的颜色
+    const [hoveredCell, setHoveredCell] = useState({ x: null, y: null }); // 保存鼠标悬停的位置
 
     const socketRef = useRef(null);
-    const boardSize = 600; // 棋盘的大小
     const cellSize = 40; // 每个单元格的大小
 
+    // WebSocket 连接与事件管理优化
     useEffect(() => {
-        // 使用 Socket.IO 建立 WebSocket 连接
         socketRef.current = io("http://127.0.0.1:5000");
 
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
         });
 
-        // 监听来自服务器的移动
-        socketRef.current.on("gameState", (message) => {
-            console.log("Received move from server:", message);
+        const handleGameState = (message) => {
             const { x, y, player } = message;
             handleMove(x, y, player, false); // 从服务器接收的移动不发送到服务器
-        });
+        };
 
-        // 监听游戏结束
-        socketRef.current.on("gameOver", (message) => {
-            console.log("Game over received from server:", message);
+        const handleGameOver = (message) => {
             setWinner(message.winner);
             setGameOver(true);
-        });
+        };
+
+        socketRef.current.on("gameState", handleGameState);
+        socketRef.current.on("gameOver", handleGameOver);
 
         socketRef.current.on("disconnect", () => {
             console.log("Disconnected from Socket.IO server");
         });
 
         return () => {
+            socketRef.current.off("gameState", handleGameState);
+            socketRef.current.off("gameOver", handleGameOver);
             socketRef.current.disconnect();
         };
     }, []);
 
-    // 处理移动
-    const handleMove = (x, y, player, sendToServer = true) => {
+    const handleMove = useCallback((x, y, player, sendToServer = true) => {
+        if (x < 0 || x >= 15 || y < 0 || y >= 15) {
+            console.log("Invalid coordinates received from server:", x, y);
+            return;
+        }
+
         if (!gameOver && board[x][y] === null) {
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
             setBoard(newBoard);
-            setCurrentPlayer(currentPlayer === "black" ? "white" : "black");
+            setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
 
             if (sendToServer) {
                 socketRef.current.emit("startGame", { x, y, player });
@@ -62,10 +66,10 @@ const Game = () => {
         } else {
             console.log("Invalid move or game over.");
         }
-    };
+    }, [board, gameOver]);
 
     // 检查胜利条件
-    const checkWinner = (newBoard, x, y, player) => {
+    const checkWinner = useCallback((newBoard, x, y, player) => {
         const directions = [
             [0, 1], [1, 0], [1, 1], [1, -1]
         ];
@@ -91,32 +95,59 @@ const Game = () => {
                 return;
             }
         }
-    };
+    }, [socketRef]);
 
-    // 点击格子时的处理
-    const handleCellClick = (event) => {
+    // 鼠标移动时处理悬停的位置
+    const handleMouseMove = (event) => {
         const boardRect = event.target.getBoundingClientRect();
         const offsetX = event.clientX - boardRect.left;
         const offsetY = event.clientY - boardRect.top;
 
-        // 计算最近的交叉点
         const x = Math.floor(offsetX / cellSize);
         const y = Math.floor(offsetY / cellSize);
 
-        // 检查是否为玩家的回合并且该格子是否为空
-        if (!gameOver && board[x][y] === null && currentPlayer === playerColor) {
-            handleMove(x, y, currentPlayer);
+        if (x >= 0 && x < 15 && y >= 0 && y < 15) {
+            setHoveredCell({ x, y });
         } else {
-            console.log("Invalid move or not your turn.");
+            setHoveredCell({ x: null, y: null });
         }
     };
+
+    // 优化点击事件，避免不必要的渲染
+    const handleCellClick = useCallback(() => {
+        const { x, y } = hoveredCell;
+        if (x !== null && y !== null && board[x][y] === null && currentPlayer === playerColor) {
+            handleMove(x, y, currentPlayer);
+        }
+    }, [board, currentPlayer, gameOver, playerColor, hoveredCell, handleMove]);
 
     // 玩家选择颜色
     const handleColorSelection = (color) => {
         setPlayerColor(color);
-        setOpponentColor(color === "black" ? "white" : "black");
         console.log(`Player selected ${color}`);
     };
+
+    // 优化棋盘渲染，减少不必要的渲染
+    const renderBoard = useMemo(() => {
+        return (
+            <div className="game-board" onMouseMove={handleMouseMove} onClick={handleCellClick}>
+                {board.map((row, rowIndex) => (
+                    <div key={rowIndex} className="row">
+                        {row.map((cell, colIndex) => (
+                            <div key={colIndex} className="cell">
+                                {/* 渲染已经落下的棋子 */}
+                                {cell && <div className={`piece ${cell}`}></div>}
+                                {/* 显示悬停时的虚化棋子 */}
+                                {hoveredCell.x === rowIndex && hoveredCell.y === colIndex && !cell && (
+                                    <div className={`piece hover ${playerColor}`}></div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+        );
+    }, [board, handleCellClick, hoveredCell, playerColor]);
 
     // 如果没有选择棋子颜色，显示选择颜色的界面
     if (!playerColor) {
@@ -134,20 +165,7 @@ const Game = () => {
             <h2>Gomoku Game</h2>
             {gameOver ? <h3>Winner: {winner}</h3> :
                 <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>}
-            <div className="game-board" onClick={handleCellClick}>
-                {board.map((row, rowIndex) => (
-                    <div key={rowIndex} className="row">
-                        {row.map((cell, colIndex) => {
-                            return (
-                                <div key={colIndex} className={`cell`}>
-                                    {cell && <div className={`piece ${cell}`}></div>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                ))}
-            </div>
-
+            {renderBoard}
         </div>
     );
 };

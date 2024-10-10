@@ -1,4 +1,3 @@
-import math
 import time
 import pygame
 from source.AI import *

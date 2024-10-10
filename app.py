@@ -13,6 +13,7 @@ db = SQLAlchemy()
 # 创建 SocketIO 实例，允许异步 WebSocket 通信
 socketio = SocketIO()
 
+
 def create_app():
     app = Flask(__name__, static_folder='frontend/build/static', template_folder='frontend/build')
     CORS(app)  # 启用跨域支持
@@ -30,6 +31,11 @@ def create_app():
 
     # 设置日志输出到文件
     logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    console_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(console_handler)
 
     @app.route('/')
     def index():
@@ -39,6 +45,11 @@ def create_app():
     socketio.init_app(app, cors_allowed_origins="*")
     return app
 
+
+# 将 MyWebsocket 中的逻辑与 SocketIO 事件关联
+socketio.on_event('connect', handle_connect)  # 处理连接事件
+socketio.on_event('startGame', handle_start_game)  # 处理客户端发来的下棋请求
+socketio.on_event('disconnect', handle_disconnect)  # 处理断开连接事件
 
 if __name__ == '__main__':
     app = create_app()

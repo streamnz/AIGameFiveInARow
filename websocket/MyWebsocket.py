@@ -1,4 +1,6 @@
 from flask_socketio import emit
+from gradio import JSON
+
 from source.AI import GomokuAI  # 导入 AI 类
 
 # 15x15 棋盘
@@ -21,28 +23,30 @@ def handle_disconnect():
 
 # 处理客户端发来的下棋请求
 def handle_start_game(data):
-    global current_player
-    x, y = data['x'], data['y']
-    player = data['player']
-
-    # 更新棋盘
-    if board[x][y] == '':
-        board[x][y] = player
-        ai_player.setState(x, y, 1 if player == 'black' else -1)
-        current_player = 'white' if current_player == 'black' else 'black'
-
-        # 广播玩家的移动给所有客户端
-        emit('gameState', {'x': x, 'y': y, 'player': player}, broadcast=True)
-
-        # 检查胜利条件
-        winner = check_winner(board, x, y, player)
-        if winner:
-            emit('gameOver', {'winner': winner}, broadcast=True)
-            return
-
-        # 如果轮到 AI，下棋并返回结果
-        if current_player == 'white':
-            ai_move()
+    print("handle_start_game")
+    print(data)
+    # global current_player
+    # x, y = data['x'], data['y']
+    # player = data['player']
+    #
+    # # 更新棋盘
+    # if board[x][y] == '':
+    #     board[x][y] = player
+    #     ai_player.setState(x, y, 1 if player == 'black' else -1)
+    #     current_player = 'white' if current_player == 'black' else 'black'
+    #
+    #     # 广播玩家的移动给所有客户端
+    #     emit('gameState', {'x': x, 'y': y, 'player': player}, broadcast=True)
+    #
+    #     # 检查胜利条件
+    #     winner = check_winner(board, x, y, player)
+    #     if winner:
+    #         emit('gameOver', {'winner': winner}, broadcast=True)
+    #         return
+    #
+    #     # 如果轮到 AI，下棋并返回结果
+    #     if current_player == 'white':
+    #         ai_move()
 
 
 # AI 执行下棋动作
