@@ -148,9 +148,6 @@ const Game = () => {
                 {board.map((row, rowIndex) => (
                     <div key={rowIndex} className="row">
                         {row.map((cell, colIndex) => {
-                            // 输出每个格子的状态，检查是否正确渲染
-                            console.log(`Cell at (${rowIndex}, ${colIndex}) contains:`, cell);
-
                             return (
                                 <div
                                     key={colIndex}

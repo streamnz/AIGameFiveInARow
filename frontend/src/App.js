@@ -1,15 +1,15 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes, useNavigate, useLocation} from 'react-router-dom';
 import LoginModal from './component/LoginModal';
 import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
-import { parseJwt } from './component/jwt_util';
+import {parseJwt} from './component/jwt_util';
 import Game from './component/Game';  // 假设你已经有 Game 组件
 import {AuthContext, AuthProvider} from './context/AuthContext';
 
 function App() {
-    const { isModalOpen, setIsModalOpen, handleLoginSuccess, loggedInUser } = useContext(AuthContext);
+    const {isModalOpen, setIsModalOpen, handleLoginSuccess, loggedInUser} = useContext(AuthContext);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);  // 添加控制 RegisterModal 的状态
     const navigate = useNavigate();
     const location = useLocation();
@@ -18,9 +18,8 @@ function App() {
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         const currentPath = location.pathname;
-
-        if (token) {
-            const userInfo = parseJwt(token);
+        const userInfo = parseJwt(token);
+        if (token && userInfo != null) {
             handleLoginSuccess(userInfo);
         } else if (currentPath === '/game') {
             // 如果用户未登录且试图访问受保护的 /game 页面时，重定向到首页
@@ -70,7 +69,7 @@ function App() {
                 />
 
                 {/* 游戏页面 */}
-                <Route path="/game" element={<Game />} />
+                <Route path="/game" element={<Game/>}/>
             </Routes>
 
             {/* 登录模态框 */}
@@ -93,7 +92,7 @@ function AppWithRouter() {
     return (
         <AuthProvider>
             <Router>
-                <App />
+                <App/>
             </Router>
         </AuthProvider>
     );

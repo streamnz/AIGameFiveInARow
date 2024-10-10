@@ -41,20 +41,20 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
+            // 清空 localStorage 中的用户信息
+            setLoggedInUser(null);  // 清除当前登录用户状态
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('username');
+            localStorage.removeItem('loggedInUser');
+
             // 调用后端的登出接口，设置 Authorization 请求头
             await apiClient.post('/user/logout', {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`  // 在请求头中设置 token
                 }
             });
-
             console.log("logout successfully!", parseJwt(token));
 
-            // 清空 localStorage 中的用户信息
-            localStorage.removeItem('jwtToken');
-            localStorage.removeItem('username');
-            localStorage.removeItem('loggedInUser');
-            setLoggedInUser(null);  // 清除当前登录用户状态
         } catch (error) {
             console.error("Logout failed:", error);
         }

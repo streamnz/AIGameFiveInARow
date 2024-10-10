@@ -33,6 +33,8 @@ apiClient.interceptors.response.use(
       // 处理401错误，清除token并显示登录模态框
       if (status === 401) {
         localStorage.removeItem('jwtToken');
+        localStorage.removeItem('username');
+        localStorage.removeItem('loggedInUser');
 
         if (AuthContext._currentValue) {
           AuthContext._currentValue.handle401Error();  // 调用显示LoginModal的函数
@@ -47,7 +49,6 @@ apiClient.interceptors.response.use(
       // 如果没有response，显示一个默认错误信息
       alert('An unexpected error occurred');
     }
-
     return Promise.reject(error);
   }
 );
