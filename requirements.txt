@@ -42,3 +42,8 @@ eventlet>=0.33.0  # 可选，替代 gevent，支持 Flask-SocketIO
 # 开发环境依赖
 Flask~=2.3.3
 Werkzeug>=2.3.7  # 升级Werkzeug以避免MacOS上的kqueue相关问题
+
+numpy~=1.26.4
+torch~=2.2.2
+websocket-client~=1.8.0
+gradio~=3.33.1
