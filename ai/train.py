@@ -18,8 +18,8 @@ import time
 class TrainPipeline():
     def __init__(self, init_model=None):
         # params of the board and the game
-        self.board_width = 8  # 修改成你的具体需求
-        self.board_height = 8  # 修改成你的具体需求
+        self.board_width = 15  # 修改成你的具体需求
+        self.board_height = 15  # 修改成你的具体需求
         self.n_in_row = 5  # 修改成你的具体需求
         self.board = Board(width=self.board_width,
                            height=self.board_height,
