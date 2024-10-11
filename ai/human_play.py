@@ -2,8 +2,8 @@
 """
 human VS AI models
 Input your move in the format: 2,3
-
 @author: Junxiao Song
+@Modify Hao Cheng
 """
 
 import torch

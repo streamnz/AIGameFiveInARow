@@ -4,6 +4,7 @@ An implementation of the policyValueNet in PyTorch
 Tested in PyTorch 0.2.0 and 0.3.0
 
 @author: Junxiao Song
+@Modify Hao Cheng
 """
 
 import torch

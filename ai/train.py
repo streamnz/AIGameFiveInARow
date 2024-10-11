@@ -3,6 +3,7 @@
 An implementation of the training pipeline of AlphaZero for Gomoku
 
 @author: Junxiao Song
+@Modify Hao Cheng
 """
 
 import random
