@@ -12,8 +12,8 @@ class Board(object):
     """board for the game"""
 
     def __init__(self, **kwargs):
-        self.width = int(kwargs.get('width', 8))
-        self.height = int(kwargs.get('height', 8))
+        self.width = int(kwargs.get('width', 15))
+        self.height = int(kwargs.get('height', 15))
         # board states stored as a dict,
         # key: move as location on the board,
         # value: player as pieces type

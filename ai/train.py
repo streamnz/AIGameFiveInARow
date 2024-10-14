@@ -16,6 +16,7 @@ from mcts_alphaZero import MCTSPlayer
 from policy_value_net_pytorch import PolicyValueNet  # 使用 PyTorch 版的 PolicyValueNet
 import time
 
+
 class TrainPipeline():
     def __init__(self, init_model=None):
         # params of the board and the game
@@ -27,23 +28,23 @@ class TrainPipeline():
                            n_in_row=self.n_in_row)
         self.game = Game(self.board)
         # training params
-        self.learn_rate = 2e-3
+        self.learn_rate = 1e-2
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
         self.temp = 1.0  # the temperature param
         self.n_playout = 400  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 10000
-        self.batch_size = 512  # mini-batch size for training
+        self.batch_size = 128  # mini-batch size for training
         self.data_buffer = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1
-        self.epochs = 5  # num of train_steps for each update
+        self.epochs = 2  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 50
-        self.game_batch_num = 1500
+        self.check_freq = 20
+        self.game_batch_num = 100
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
-        self.pure_mcts_playout_num = 1000
+        self.pure_mcts_playout_num = 100
 
         # 根据棋盘长宽和n_in_row动态生成模型文件名
         self.model_filename = f'best_policy_{self.board_width}_{self.board_height}_{self.n_in_row}.model2'
@@ -108,7 +109,7 @@ class TrainPipeline():
             new_probs, new_v = self.policy_value_net.policy_value(state_batch)
 
             kl = np.mean(np.sum(old_probs * (
-                np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
+                    np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
             if kl > self.kl_targ * 4:  # early stopping if D_KL diverges badly
                 break
 
@@ -131,7 +132,8 @@ class TrainPipeline():
 
     def policy_evaluate(self, n_games=10):
         """Evaluate the trained policy by playing against the pure MCTS player"""
-        current_mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct, n_playout=self.n_playout)
+        current_mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct,
+                                         n_playout=self.n_playout)
         pure_mcts_player = MCTS_Pure(c_puct=5, n_playout=self.pure_mcts_playout_num)
         win_cnt = defaultdict(int)
 
@@ -158,7 +160,8 @@ class TrainPipeline():
                     win_ratio = self.policy_evaluate()
 
                     # 保存当前模型
-                    self.policy_value_net.save_model(f'./current_policy_{self.board_width}_{self.board_height}_{self.n_in_row}.model2')
+                    self.policy_value_net.save_model(
+                        f'./current_policy_{self.board_width}_{self.board_height}_{self.n_in_row}.model2')
 
                     # 保存最佳模型
                     if win_ratio > self.best_win_ratio:
@@ -175,10 +178,12 @@ class TrainPipeline():
                 remaining_time = remaining_batches * batch_time
 
                 print(f"Batch {i + 1}/{self.game_batch_num} completed in {batch_time:.2f} seconds.")
-                print(f"Estimated remaining time: {remaining_time // 60:.0f} minutes {remaining_time % 60:.0f} seconds.")
+                print(
+                    f"Estimated remaining time: {remaining_time // 60:.0f} minutes {remaining_time % 60:.0f} seconds.")
 
         except KeyboardInterrupt:
             print("Training interrupted.")
+
 
 if __name__ == '__main__':
     training_pipeline = TrainPipeline()
