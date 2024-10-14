@@ -7,10 +7,9 @@ Input your move in the format: 2,3
 """
 
 import torch
-from game import Board, Game
-from mcts_pure import MCTSPlayer as MCTS_Pure
-from mcts_alphaZero import MCTSPlayer
-from policy_value_net_pytorch import PolicyValueNet  # Pytorch
+from ai.game import Board, Game
+from ai.mcts_alphaZero import MCTSPlayer
+from ai.policy_value_net_pytorch import PolicyValueNet  # Pytorch
 
 class Human(object):
     """
