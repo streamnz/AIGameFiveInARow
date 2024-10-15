@@ -1,4 +1,4 @@
-.game-container {
+.gomoku-game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -8,8 +8,9 @@
     color: white;
 }
 
-.game-board {
-    position: relative;
+.gomoku-game-board {
+    display: flex;
+    flex-direction: column;
     width: 600px;
     height: 600px;
     background-color: #f5deb3;
@@ -20,64 +21,61 @@
     background-size: 40px 40px;
 }
 
-.cell {
+.gomoku-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.gomoku-cell {
     width: 40px;
     height: 40px;
     position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.piece {
+.gomoku-piece {
     width: 30px;
     height: 30px;
     border-radius: 50%;
     position: absolute;
-    left: 50%;
-    top: 50%;
     transform: translate(-50%, -50%);
 }
 
-.piece.black {
+.gomoku-piece-black {
     background-color: black;
     z-index: 10; /* 提高 z-index，确保黑子显示在棋盘上方 */
 }
 
-.piece.white {
+.gomoku-piece-white {
     background-color: white;
-    z-index: 10; /* 提高 z-index，确保黑子显示在棋盘上方 */
+    z-index: 10; /* 提高 z-index，确保白子显示在棋盘上方 */
 }
 
-/* 为选择按钮设计的样式，使用 player-select-white-black 类名 */
-.player-select-white-black {
-    background: linear-gradient(135deg, #6a11cb, #2575fc); /* 渐变背景色 */
+/* 为选择按钮设计的样式 */
+.gomoku-player-select-white-black {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
     border: none;
-    border-radius: 25px; /* 圆角边框 */
+    border-radius: 25px;
     color: white;
     font-size: 18px;
     padding: 15px 30px;
     cursor: pointer;
-    transition: all 0.3s ease; /* 动画效果 */
-    margin: 10px auto; /* 自动左右居中 */
-    width: 300px; /* 设置固定宽度 */
+    transition: all 0.3s ease;
+    margin: 10px auto;
+    width: 300px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.player-select-white-black:hover {
-    background: linear-gradient(135deg, #ff512f, #dd2476); /* 悬停时改变背景色 */
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* 增加阴影效果 */
-    transform: scale(1.05); /* 悬停时放大效果 */
+.gomoku-player-select-white-black:hover {
+    background: linear-gradient(135deg, #ff512f, #dd2476);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
 }
 
-.player-select-white-black:active {
-    transform: scale(0.98); /* 点击时缩小效果 */
+.gomoku-player-select-white-black:active {
+    transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-.piece.hover {
-    opacity: 0.5; /* 虚化效果 */
-}
-
-/* 确保虚化棋子在最前面 */
-.cell:hover .piece.hover {
-    z-index: 15;
-}
-
-

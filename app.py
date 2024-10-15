@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from config import Config  # 从 config.py 导入配置类
 from flask_socketio import SocketIO
 import logging
-from websocket.MyWebsocket import handle_start_game, handle_connect, handle_disconnect  # 从 MyWebsocket 导入处理逻辑
+from websocket.MyWebsocket import handle_connect, handle_disconnect, handle_ai_first_move, handle_player_move # 从 MyWebsocket 导入处理逻辑
 
 # 创建数据库对象
 db = SQLAlchemy()
@@ -48,8 +48,9 @@ def create_app():
 
 # 将 MyWebsocket 中的逻辑与 SocketIO 事件关联
 socketio.on_event('connect', handle_connect)  # 处理连接事件
-socketio.on_event('startGame', handle_start_game)  # 处理客户端发来的下棋请求
 socketio.on_event('disconnect', handle_disconnect)  # 处理断开连接事件
+socketio.on_event('aiFirstMove', handle_ai_first_move)  # 处理断开连接事件
+socketio.on_event('playerMove', handle_player_move)  # 处理断开连接事件
 
 if __name__ == '__main__':
     app = create_app()

@@ -5,12 +5,12 @@ import LoginModal from './component/LoginModal';
 import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
 import {parseJwt} from './component/jwt_util';
-import Game from './component/Game';  // 假设你已经有 Game 组件
+import Game from './component/Game';
 import {AuthContext, AuthProvider} from './context/AuthContext';
 
 function App() {
     const {isModalOpen, setIsModalOpen, handleLoginSuccess, loggedInUser} = useContext(AuthContext);
-    const [isRegisterOpen, setIsRegisterOpen] = useState(false);  // 添加控制 RegisterModal 的状态
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false); // 控制 RegisterModal 状态
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -19,7 +19,8 @@ function App() {
         const token = localStorage.getItem('jwtToken');
         const currentPath = location.pathname;
         const userInfo = parseJwt(token);
-        if (token && userInfo != null) {
+
+        if (token && userInfo) {
             handleLoginSuccess(userInfo);
         } else if (currentPath === '/game') {
             // 如果用户未登录且试图访问受保护的 /game 页面时，重定向到首页
@@ -29,12 +30,10 @@ function App() {
 
     const handleGetStarted = () => {
         if (loggedInUser) {
-            // 如果已经登录，跳转到游戏页面
-            console.log("Already logged in, jump to /game")
+            console.log("Already logged in, jump to /game");
             navigate('/game');
         } else {
-            // 如果没有登录，显示登录模态框
-            setIsModalOpen(true);
+            setIsModalOpen(true); // 如果没有登录，显示登录模态框
         }
     };
 
@@ -44,7 +43,7 @@ function App() {
             <Navbar
                 loggedInUser={loggedInUser}
                 onLoginClick={() => setIsModalOpen(true)}
-                onRegisterClick={() => setIsRegisterOpen(true)}  // 点击注册时，打开 RegisterModal
+                onRegisterClick={() => setIsRegisterOpen(true)} // 点击注册时，打开 RegisterModal
             />
 
             {/* 路由配置 */}
@@ -60,7 +59,7 @@ function App() {
                                     <h1>Welcome to Stream NZ!</h1>
                                     <h2>Beat AI Player to earn ETH!</h2>
 
-                                    {/* Start Game按钮总是显示 */}
+                                    {/* Start Game按钮 */}
                                     <button className="start-btn" onClick={handleGetStarted}>Start Game</button>
                                 </div>
                             </header>
@@ -81,8 +80,8 @@ function App() {
 
             {/* 注册模态框 */}
             <RegisterModal
-                isOpen={isRegisterOpen}  // 使用状态控制 RegisterModal 的打开和关闭
-                onClose={() => setIsRegisterOpen(false)}  // 关闭注册模态框
+                isOpen={isRegisterOpen}
+                onClose={() => setIsRegisterOpen(false)} // 关闭注册模态框
             />
         </div>
     );
