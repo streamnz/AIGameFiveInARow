@@ -87,9 +87,9 @@ def ai_move():
     for i in range(board_size):
         for j in range(board_size):
             if board[i][j] == 'black':
-                game_board.do_move(game_board.location_to_move([i, j]), player=1)
+                game_board.do_move(game_board.location_to_move([i, j]))
             elif board[i][j] == 'white':
-                game_board.do_move(game_board.location_to_move([i, j]), player=2)
+                game_board.do_move(game_board.location_to_move([i, j]))
 
     # AI 落子
     ai_action = ai_player.get_action(game_board)
@@ -101,7 +101,7 @@ def ai_move():
 
     # 检查 AI 是否获胜
     if not check_and_emit_winner(ai_x, ai_y, 'white'):
-        emit('aiMove', {'x': ai_x, 'y': ai_y, 'player': 'white'}, broadcast=True)
+        emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'white'}, broadcast=True)
 
 
 # 检查胜负条件
