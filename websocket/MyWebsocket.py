@@ -17,16 +17,13 @@ use_gpu = torch.cuda.is_available()  # 检查是否有 GPU
 policy_value_net = PolicyValueNet(board_size, board_size, model_file=model_file, use_gpu=use_gpu)
 ai_player = MCTSPlayer(policy_value_net.policy_value_fn, c_puct=5, n_playout=400)
 
-
 # 客户端连接时的处理逻辑
 def handle_connect():
     print("Client connected")
 
-
 # 客户端断开连接时的处理逻辑
 def handle_disconnect():
     print("Client disconnected")
-
 
 # 处理客户端选择白棋的情况，AI 先下第一步
 def handle_ai_first_move():
@@ -35,14 +32,14 @@ def handle_ai_first_move():
 
     print("AI starts first move (black)")
 
-    # AI 下第一步黑棋
-    game_board = Board(width=board_size, height=board_size, n_in_row=5)
-    game_board.init_board()
+    # AI 计算下棋
+    game_board = _initialize_game_board(board)
 
     ai_action = ai_player.get_action(game_board)  # AI 计算下一步
     ai_x, ai_y = game_board.move_to_location(ai_action)
 
-    board[int(ai_x)][int(ai_y)] = 'black'  # AI 落子为黑棋
+    # 更新棋盘状态
+    board[ai_x][ai_y] = 'black'  # AI 落子为黑棋
     current_player = 'white'  # 轮到玩家下棋
 
     print(f"AI placed black piece at ({ai_x}, {ai_y})")
@@ -50,10 +47,11 @@ def handle_ai_first_move():
     # 发送 AI 的落子信息给客户端
     emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
 
-
 # 处理玩家的走子动作
 def handle_player_move(data):
     global current_player
+    global board
+
     x, y = data['x'], data['y']
     player = data['player']
 
@@ -71,7 +69,6 @@ def handle_player_move(data):
     else:
         print(f"Invalid move: Position ({x}, {y}) is already occupied")
 
-
 # AI 下棋逻辑
 def ai_move():
     global current_player
@@ -79,17 +76,8 @@ def ai_move():
 
     print("AI is calculating its next move...")
 
-    # AI 计算下一步
-    game_board = Board(width=board_size, height=board_size, n_in_row=5)
-    game_board.init_board()
-
-    # 将棋盘状态应用到 AI 计算的棋盘中
-    for i in range(board_size):
-        for j in range(board_size):
-            if board[i][j] == 'black':
-                game_board.do_move(game_board.location_to_move([i, j]))
-            elif board[i][j] == 'white':
-                game_board.do_move(game_board.location_to_move([i, j]))
+    # AI 计算下棋
+    game_board = _initialize_game_board(board)
 
     # AI 落子
     ai_action = ai_player.get_action(game_board)
@@ -102,7 +90,6 @@ def ai_move():
     # 检查 AI 是否获胜
     if not check_and_emit_winner(ai_x, ai_y, 'white'):
         emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'white'}, broadcast=True)
-
 
 # 检查胜负条件
 def check_winner(board, x, y, player):
@@ -133,7 +120,6 @@ def check_winner(board, x, y, player):
 
     return None
 
-
 # 在每次 AI 或玩家下棋后检查胜负
 def check_and_emit_winner(x, y, player):
     winner = check_winner(board, x, y, player)
@@ -141,3 +127,21 @@ def check_and_emit_winner(x, y, player):
         emit('gameOver', {'winner': winner}, broadcast=True)
         return True
     return False
+
+# 初始化游戏棋盘状态，用于 AI 的计算
+def _initialize_game_board(board):
+    """
+    根据当前棋盘状态初始化 Board 对象。
+    """
+    game_board = Board(width=board_size, height=board_size, n_in_row=5)
+    game_board.init_board()
+
+    # 将当前棋盘状态应用到 game_board
+    for i in range(board_size):
+        for j in range(board_size):
+            if board[i][j] == 'black':
+                game_board.do_move(game_board.location_to_move((i, j)))
+            elif board[i][j] == 'white':
+                game_board.do_move(game_board.location_to_move((i, j)))
+
+    return game_board
