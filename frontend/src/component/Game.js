@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { io } from "socket.io-client";
+import React, {useEffect, useState, useRef, useCallback, useMemo} from "react";
+import {io} from "socket.io-client";
 import "./Game.css";
 
 const Game = () => {
@@ -8,7 +8,7 @@ const Game = () => {
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null); // 玩家选择的颜色
-    const [hoveredCell, setHoveredCell] = useState({ x: null, y: null }); // 保存鼠标悬停的位置
+    const [hoveredCell, setHoveredCell] = useState({x: null, y: null}); // 保存鼠标悬停的位置
 
     const socketRef = useRef(null);
     const cellSize = 40; // 每个单元格的大小
@@ -22,7 +22,7 @@ const Game = () => {
         });
 
         const handleGameState = (message) => {
-            const { x, y, player } = message;
+            const {x, y, player} = message;
             handleMove(x, y, player, false); // 从服务器接收的移动不发送到服务器
         };
 
@@ -46,11 +46,12 @@ const Game = () => {
     }, []);
 
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
-        if (x < 0 || x >= 15 || y < 0 || y >= 15) {
-            console.log("Invalid coordinates received from server:", x, y);
+        if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
+            console.log("Invalid coordinates or board row undefined:", x, y);
             return;
         }
-
+        console.log("棋盘对象: ", board); // 输出棋盘对象
+        console.log("当前坐标: ", x, y); // 输出坐标
         if (!gameOver && board[x][y] === null) {
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
@@ -59,7 +60,7 @@ const Game = () => {
             setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
 
             if (sendToServer) {
-                socketRef.current.emit("startGame", { x, y, player });
+                socketRef.current.emit("startGame", {x, y, player});
             }
 
             checkWinner(newBoard, x, y, player);
@@ -67,6 +68,7 @@ const Game = () => {
             console.log("Invalid move or game over.");
         }
     }, [board, gameOver]);
+
 
     // 检查胜利条件
     const checkWinner = useCallback((newBoard, x, y, player) => {
@@ -91,7 +93,7 @@ const Game = () => {
             if (count >= 5) {
                 setWinner(player);
                 setGameOver(true);
-                socketRef.current.emit("gameOver", { winner: player });
+                socketRef.current.emit("gameOver", {winner: player});
                 return;
             }
         }
@@ -99,25 +101,40 @@ const Game = () => {
 
     // 鼠标移动时处理悬停的位置
     const handleMouseMove = (event) => {
-        const boardRect = event.target.getBoundingClientRect();
+        const boardRect = event.currentTarget.getBoundingClientRect();  // 使用 currentTarget
         const offsetX = event.clientX - boardRect.left;
         const offsetY = event.clientY - boardRect.top;
 
         const x = Math.floor(offsetX / cellSize);
         const y = Math.floor(offsetY / cellSize);
 
+        // 输出调试信息
+        console.log("Mouse Move -> OffsetX:", offsetX, "OffsetY:", offsetY);
+        console.log("Calculated X:", x, "Y:", y);
+        console.log("boardRect:", boardRect);
+        console.log("cellSize:", cellSize);
+
         if (x >= 0 && x < 15 && y >= 0 && y < 15) {
-            setHoveredCell({ x, y });
+            setHoveredCell({x, y});
         } else {
-            setHoveredCell({ x: null, y: null });
+            setHoveredCell({x: null, y: null});
         }
     };
 
-    // 优化点击事件，避免不必要的渲染
+
     const handleCellClick = useCallback(() => {
-        const { x, y } = hoveredCell;
-        if (x !== null && y !== null && board[x][y] === null && currentPlayer === playerColor) {
+        const {x, y} = hoveredCell;
+        // 输出调试信息
+         console.log("x",x);
+         console.log("y",y);
+         console.log("Cell Click -> hoveredCell:", hoveredCell);
+         console.log("Current Player:", currentPlayer);
+         console.log("Player Color:", playerColor);  // 打印当前的 playerColor
+        // 检查 hoveredCell 的有效性，以及玩家是否正确选择了颜色
+        if (x !== null && y !== null && board[x] && board[x][y] === null && currentPlayer === playerColor) {
             handleMove(x, y, currentPlayer);
+        } else {
+            console.log("handleCellClick invalid");
         }
     }, [board, currentPlayer, gameOver, playerColor, hoveredCell, handleMove]);
 
@@ -154,8 +171,12 @@ const Game = () => {
         return (
             <div className="game-container">
                 <h2>Select your color</h2>
-                <button className="player-select-white-black" onClick={() => handleColorSelection("black")}>Play as Black</button>
-                <button className="player-select-white-black" onClick={() => handleColorSelection("white")}>Play as White</button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection("black")}>Play as
+                    Black
+                </button>
+                <button className="player-select-white-black" onClick={() => handleColorSelection("white")}>Play as
+                    White
+                </button>
             </div>
         );
     }
