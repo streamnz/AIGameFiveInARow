@@ -17,13 +17,16 @@ use_gpu = torch.cuda.is_available()  # 检查是否有 GPU
 policy_value_net = PolicyValueNet(board_size, board_size, model_file=model_file, use_gpu=use_gpu)
 ai_player = MCTSPlayer(policy_value_net.policy_value_fn, c_puct=5, n_playout=400)
 
+
 # 客户端连接时的处理逻辑
 def handle_connect():
     print("Client connected")
 
+
 # 客户端断开连接时的处理逻辑
 def handle_disconnect():
     print("Client disconnected")
+
 
 # 处理客户端选择白棋的情况，AI 先下第一步
 def handle_ai_first_move():
@@ -47,6 +50,7 @@ def handle_ai_first_move():
     # 发送 AI 的落子信息给客户端
     emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
 
+
 # 处理玩家的走子动作
 def handle_player_move(data):
     global current_player
@@ -69,6 +73,7 @@ def handle_player_move(data):
     else:
         print(f"Invalid move: Position ({x}, {y}) is already occupied")
 
+
 # AI 下棋逻辑
 def ai_move():
     global current_player
@@ -90,6 +95,7 @@ def ai_move():
     # 检查 AI 是否获胜
     if not check_and_emit_winner(ai_x, ai_y, 'white'):
         emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'white'}, broadcast=True)
+
 
 # 检查胜负条件
 def check_winner(board, x, y, player):
@@ -120,6 +126,7 @@ def check_winner(board, x, y, player):
 
     return None
 
+
 # 在每次 AI 或玩家下棋后检查胜负
 def check_and_emit_winner(x, y, player):
     winner = check_winner(board, x, y, player)
@@ -127,6 +134,7 @@ def check_and_emit_winner(x, y, player):
         emit('gameOver', {'winner': winner}, broadcast=True)
         return True
     return False
+
 
 # 初始化游戏棋盘状态，用于 AI 的计算
 def _initialize_game_board(board):
