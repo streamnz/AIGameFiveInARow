@@ -10,10 +10,10 @@ import random
 import numpy as np
 from collections import defaultdict, deque
 import torch
-from game import Board, Game
-from mcts_pure import MCTSPlayer as MCTS_Pure
-from mcts_alphaZero import MCTSPlayer
-from policy_value_net_pytorch import PolicyValueNet  # 使用 PyTorch 版的 PolicyValueNet
+from ai.game import Board, Game
+from ai.mcts_pure import MCTSPlayer as MCTS_Pure
+from ai.mcts_alphaZero import MCTSPlayer
+from ai.policy_value_net_pytorch import PolicyValueNet  # 使用 PyTorch 版的 PolicyValueNet
 import time
 
 
