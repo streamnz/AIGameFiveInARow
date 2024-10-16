@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
 import "./Game.css";
+import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
 const GomokuCell = React.memo(({ x, y, value, onClick }) => {
     return (
@@ -60,8 +61,12 @@ const Game = () => {
             console.log("Invalid coordinates or board row undefined:", x, y);
             return;
         }
-
-        if (!gameOver && board[x][y] === "") {
+        if (gameOver) {
+            alert("The Game is Over!")
+            return;
+        }
+        console.log("board[x][y]", board[x][y]);
+        if (board[x][y] === "" || board[x][y] === null) {
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
@@ -72,7 +77,7 @@ const Game = () => {
                 socketRef.current.emit("playerMove", { x, y, player });
             }
         } else {
-            console.log("Invalid move or game over.");
+            console.log("Invalid move!");
         }
     }, [board, gameOver]);
 
@@ -86,7 +91,7 @@ const Game = () => {
             alert("It's not your turn! Please wait for the opponent.");
             return;
         }
-        console.log("handleCellClick", x, y,board[x][y]);
+
         if (board[x][y] === "" || board[x][y] === null) {
             handleMove(x, y, currentPlayer);
         } else {
@@ -94,10 +99,27 @@ const Game = () => {
         }
     }, [board, currentPlayer, playerColor, gameOver, handleMove]);
 
+    // 关闭模态框，重置游戏状态并显示颜色选择页面
+    const handleCloseModal = () => {
+        setGameOver(false);
+        setWinner(null);
+        setBoard(Array(15).fill(null).map(() => Array(15).fill(null)));
+        setPlayerColor(null);  // 重置玩家颜色，显示选择页面
+        setCurrentPlayer(null);
+        socketRef.current.emit("resetGame");  // 通知后端重置游戏
+    };
+
     const handleColorSelection = (color) => {
         setPlayerColor(color);
-        if (color === "white") {
-            socketRef.current.emit("aiFirstMove");
+        if (color === "black") {
+            // 玩家选择黑子，自己先下
+            setCurrentPlayer("black");
+        } else if (color === "white") {
+            // 玩家选择白子，AI先下，设置玩家为黑子
+            setCurrentPlayer("white");
+            socketRef.current.emit("aiFirstMove", () => {
+                setCurrentPlayer("black"); // AI 下完第一步后，轮到玩家下棋
+            });
         }
     };
 
@@ -145,11 +167,15 @@ const Game = () => {
         <div className="gomoku-game-container">
             <h2>Gomoku Game</h2>
             {gameOver ? (
-                <h3>Winner: {winner}</h3>
+                <>
+                    <h3>Winner: {winner}</h3>
+                </>
             ) : (
                 <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>
             )}
             {renderBoard()}
+            {/* 渲染 WinnerModal */}
+            {gameOver && <WinnerModal winner={winner} onClose={handleCloseModal} />}
         </div>
     );
 };

@@ -98,8 +98,6 @@ def handle_ai_first_move():
         disconnect()
 
 
-
-
 # 处理玩家的走子动作
 def handle_player_move(data):
     try:
@@ -224,3 +222,30 @@ def _initialize_game_board(board):
                 game_board.do_move(game_board.location_to_move((i, j)))
 
     return game_board
+
+
+def handle_reset_game():
+    decoded_token = get_decoded_token_from_request()
+    session_id = decoded_token.get('email')
+
+    if session_id in games:
+        # 重置游戏状态
+        games[session_id] = {
+            "board": [['' for _ in range(board_size)] for _ in range(board_size)],
+            "current_player": "black",
+            "status": "ongoing",
+            "winner": None
+        }
+        emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
+        print(f"Game reset for session ID: {session_id}")
+    else:
+        print(f"No game found to reset for session ID: {session_id}")
+
+
+def handle_logout():
+    decoded_token = get_decoded_token_from_request()  # 获取用户的 session ID
+    session_id = decoded_token.get('email')  # 假设 email 作为 session_id
+
+    if session_id in games:
+        del games[session_id]  # 删除用户的游戏状态
+        print(f"Game data cleared for session ID: {session_id}")
