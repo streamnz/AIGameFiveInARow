@@ -46,26 +46,26 @@ def login():
     if not email or not password:
         return jsonify({"status": "error", "message": "Username and password are required."}), 400
 
-    # login_result = user_service.login_user(email, password)
-    # if login_result["status"] == "error":
-    #     return jsonify({"msg": "Bad username or password"}), 401
+    login_result = user_service.login_user(email, password)
+    if login_result["status"] == "error":
+        return jsonify({"msg": "Bad username or password"}), 401
 
     # 模拟固定用户信息
-    if email == "hao@gmail.com":
-        login_result = {
-            "status": "success",
-            "user": {
-                "id": 1,
-                "username": "hao",
-                "email": "hao@gmail.com"
-            }}
-    else:
-        return jsonify({"status": "error", "message": "Bad username or password"}), 401
+    # if email == "hao@gmail.com":
+    #     login_result = {
+    #         "status": "success",
+    #         "user": {
+    #             "id": 1,
+    #             "username": "hao",
+    #             "email": "hao@gmail.com"
+    #         }}
+    # else:
+    #     return jsonify({"status": "error", "message": "Bad username or password"}), 401
 
     cur_user = login_result.get("user")
 
-    # access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
-    access_token = create_jwt_token(cur_user["id"], cur_user["username"], cur_user["email"])
+    access_token = create_jwt_token(cur_user.id, cur_user.username, cur_user.email)
+    # access_token = create_jwt_token(cur_user["id"], cur_user["username"], cur_user["email"])
 
     session[email] = access_token
 

@@ -91,7 +91,7 @@ def handle_ai_first_move():
             print(f"AI placed black piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
 
             # 发送 AI 的落子信息给客户端
-            emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
+            emit('updateBoard', {'board': games[session_id]['board'], 'next_turn': 'white'}, broadcast=True)
             # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
     except Exception as e:
         print(f"Error during AI first move: {str(e)}")
@@ -152,15 +152,17 @@ def ai_move(session_id, ai_player_color):
     ai_action = ai_player.get_action(game_board)
     ai_x, ai_y = game_board.move_to_location(ai_action)
     board[ai_x][ai_y] = ai_player_color
-    games[session_id]['current_player'] = 'black' if ai_player_color == 'white' else 'white'
+    next_turn = 'black' if ai_player_color == 'white' else 'white'  # 切换回合
+    games[session_id]['current_player'] = next_turn
 
     print(f"AI placed {ai_player_color} piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
 
     # 检查 AI 是否获胜
     if not check_and_emit_winner(session_id, ai_x, ai_y, ai_player_color):
-        print("aiMove!")
+        print("aiMove! and nextTurn",next_turn)
         # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
-        emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
+        emit('updateBoard', {'board': games[session_id]['board'], 'next_turn': next_turn},
+             broadcast=True)
 
 
 # 检查胜赢条件

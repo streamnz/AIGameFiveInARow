@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { io } from "socket.io-client";
+import React, {useEffect, useState, useRef, useCallback} from "react";
+import {io} from "socket.io-client";
 import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
-const GomokuCell = React.memo(({ x, y, value, onClick }) => {
+const GomokuCell = React.memo(({x, y, value, onClick}) => {
     return (
         <div className="gomoku-cell" onClick={() => onClick(x, y)}>
             {value === "black" && <div className="gomoku-piece gomoku-piece-black"></div>}
@@ -26,16 +26,17 @@ const Game = () => {
         setGameOver(true);
     }, []);
 
-    // 更新棋盘状态
-    const handleUpdateBoard = useCallback(({ board: newBoard }) => {
+    // 更新棋盘状态并根据当前玩家的颜色更新 currentPlayer
+    const handleUpdateBoard = useCallback(({board: newBoard, next_turn}) => {
+        console.log("handleUpdateBoard next_turn", next_turn);
+        setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
         setBoard(newBoard);
-        setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
     }, []);
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
         socketRef.current = io("http://127.0.0.1:5000", {
-            query: { token: jwtToken },
+            query: {token: jwtToken},
         });
 
         socketRef.current.on("connect", () => {
@@ -67,14 +68,14 @@ const Game = () => {
         }
         console.log("board[x][y]", board[x][y]);
         if (board[x][y] === "" || board[x][y] === null) {
+            // 用户点击，提前显示点击效果
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
             setBoard(newBoard);
-            setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
-
             if (sendToServer) {
-                socketRef.current.emit("playerMove", { x, y, player });
+                console.log("playerMove", {x, y, player})
+                socketRef.current.emit("playerMove", {x, y, player});
             }
         } else {
             console.log("Invalid move!");
@@ -86,7 +87,7 @@ const Game = () => {
             alert("Game is over!");
             return;
         }
-
+        console.log("currentPlayer and playerColor", currentPlayer, playerColor)
         if (currentPlayer !== playerColor) {
             alert("It's not your turn! Please wait for the opponent.");
             return;
@@ -117,9 +118,7 @@ const Game = () => {
         } else if (color === "white") {
             // 玩家选择白子，AI先下，设置玩家为黑子
             setCurrentPlayer("white");
-            socketRef.current.emit("aiFirstMove", () => {
-                setCurrentPlayer("black"); // AI 下完第一步后，轮到玩家下棋
-            });
+            socketRef.current.emit("aiFirstMove");
         }
     };
 
@@ -175,7 +174,7 @@ const Game = () => {
             )}
             {renderBoard()}
             {/* 渲染 WinnerModal */}
-            {gameOver && <WinnerModal winner={winner} onClose={handleCloseModal} />}
+            {gameOver && <WinnerModal winner={winner} onClose={handleCloseModal}/>}
         </div>
     );
 };
