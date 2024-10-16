@@ -1,13 +1,14 @@
-from flask_socketio import emit
+from flask_socketio import emit, disconnect
 from ai.human_play import PolicyValueNet
 from ai.mcts_alphaZero import MCTSPlayer
-from ai.game import Board, Game
+from ai.game import Board
 import torch
+import threading
 
-# 15x15 棋盘
+from utils.jwt_util import get_decoded_token_from_request, decode_jwt_token
+
+# 15x15 棋盘尺寸
 board_size = 15
-board = [['' for _ in range(board_size)] for _ in range(board_size)]
-current_player = 'black'
 
 # 设置AI模型的路径
 model_file = './ai/current_policy_15_15_5.model2'
@@ -17,87 +18,150 @@ use_gpu = torch.cuda.is_available()  # 检查是否有 GPU
 policy_value_net = PolicyValueNet(board_size, board_size, model_file=model_file, use_gpu=use_gpu)
 ai_player = MCTSPlayer(policy_value_net.policy_value_fn, c_puct=5, n_playout=400)
 
+# 用于存储所有用户对局状态的字典
+# 增加线程锁以保证线程安全
+games = {}
+games_lock = threading.Lock()
+
 
 # 客户端连接时的处理逻辑
 def handle_connect():
-    print("Client connected")
+    try:
+        # 使用 jwt_util 从请求中解码 token
+        decoded_token = get_decoded_token_from_request()
+        session_id = decoded_token.get('email')  # 或者其他字段
+
+        with games_lock:
+            print(f"Client connected with session ID: {session_id}")
+            if session_id not in games:
+                # 初始化游戏状态
+                games[session_id] = {
+                    "board": [['' for _ in range(board_size)] for _ in range(board_size)],
+                    "current_player": "black",
+                    "status": "ongoing",
+                    "winner": None
+                }
+    except Exception as e:
+        print(f"Connection error: {str(e)}")
+        disconnect()
 
 
 # 客户端断开连接时的处理逻辑
 def handle_disconnect():
-    print("Client disconnected")
+    try:
+        decoded_token = get_decoded_token_from_request()
+        session_id = decoded_token.get('sub')
+
+        with games_lock:
+            if session_id in games:
+                print(f"Removing game for session ID: {session_id}")
+                del games[session_id]  # 清理对局状态
+
+    except Exception as e:
+        print(f"Disconnect error: {str(e)}")
+    finally:
+        print("Client disconnected")
 
 
 # 处理客户端选择白棋的情况，AI 先下第一步
 def handle_ai_first_move():
-    global current_player
-    global board
+    try:
+        decoded_token = get_decoded_token_from_request()
+        session_id = decoded_token.get('email')
 
-    print("AI starts first move (black)")
+        with games_lock:
+            if session_id not in games:
+                print(f"No game found for session ID: {session_id}")
+                return
 
-    # AI 计算下棋
-    game_board = _initialize_game_board(board)
+            print(f"AI starts first move (black) for session ID: {session_id}")
 
-    ai_action = ai_player.get_action(game_board)  # AI 计算下一步
-    ai_x, ai_y = game_board.move_to_location(ai_action)
+            # 初始化游戏棋盘
+            board = games[session_id]['board']
+            game_board = _initialize_game_board(board)
 
-    # 更新棋盘状态
-    board[ai_x][ai_y] = 'black'  # AI 落子为黑棋
-    current_player = 'white'  # 轮到玩家下棋
+            # AI 落子
+            ai_action = ai_player.get_action(game_board)
+            ai_x, ai_y = game_board.move_to_location(ai_action)
 
-    print(f"AI placed black piece at ({ai_x}, {ai_y})")
+            # 更新游戏状态
+            board[ai_x][ai_y] = 'black'  # X 为行，Y 为列，先横后纵
+            games[session_id]['current_player'] = 'white'
 
-    # 发送 AI 的落子信息给客户端
-    emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
+            print(f"AI placed black piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
+
+            # 发送 AI 的落子信息给客户端
+            emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
+    except Exception as e:
+        print(f"Error during AI first move: {str(e)}")
+        disconnect()
 
 
 # 处理玩家的走子动作
 def handle_player_move(data):
-    global current_player
-    global board
+    try:
+        decoded_token = get_decoded_token_from_request()
+        session_id = decoded_token.get('email')
 
-    x, y = data['x'], data['y']
-    player = data['player']
+        with games_lock:
+            if session_id not in games:
+                print(f"No game found for session ID: {session_id}")
+                return
 
-    print(f"Player {player} placed piece at ({x}, {y})")
+            x, y = data['x'], data['y']
+            player = data['player']
 
-    # 更新棋盘
-    if board[x][y] == '':
-        board[x][y] = player
-        current_player = 'white' if current_player == 'black' else 'black'
+            print(f"Player {player} placed piece at ({x}, {y}) for session ID: {session_id}")
 
-        # 检查玩家是否获胜
-        if not check_and_emit_winner(x, y, player):
-            print("AI is making its move...")
-            ai_move()  # AI 下棋
-    else:
-        print(f"Invalid move: Position ({x}, {y}) is already occupied")
+            # 获取当前游戏状态
+            game = games[session_id]
+            board = game['board']
+
+            # 更新棋盘
+            print("board[x][y]", board[x][y])
+            print("player", player)
+            if board[x][y] == '':
+                board[x][y] = player
+                game['current_player'] = 'white' if game['current_player'] == 'black' else 'black'
+                print("game.current_player", game['current_player'])
+                # 检查玩家是否获胜
+                if not check_and_emit_winner(session_id, x, y, player):
+                    print("AI is making its move...")
+                    ai_move(session_id, game['current_player'])  # AI 下棋
+            else:
+                print(f"Invalid move: Position ({x}, {y}) is already occupied for session ID: {session_id}")
+    except Exception as e:
+        print(f"Error during player move: {str(e)}")
+        disconnect()
 
 
 # AI 下棋逻辑
-def ai_move():
-    global current_player
-    global board
+def ai_move(session_id, ai_player_color):
+    if session_id not in games:
+        print(f"No game found for session ID: {session_id}")
+        return
 
-    print("AI is calculating its next move...")
+    print(f"AI is calculating its next move for session ID: {session_id}")
 
-    # AI 计算下棋
+    # 初始化游戏棋盘
+    board = games[session_id]['board']
     game_board = _initialize_game_board(board)
 
     # AI 落子
     ai_action = ai_player.get_action(game_board)
     ai_x, ai_y = game_board.move_to_location(ai_action)
-    board[ai_x][ai_y] = 'white'  # AI 落子为白棋
-    current_player = 'black'  # 轮到玩家
+    board[ai_x][ai_y] = ai_player_color
+    games[session_id]['current_player'] = 'black' if ai_player_color == 'white' else 'white'
 
-    print(f"AI placed white piece at ({ai_x}, {ai_y})")
+    print(f"AI placed {ai_player_color} piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
 
     # 检查 AI 是否获胜
-    if not check_and_emit_winner(ai_x, ai_y, 'white'):
-        emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'white'}, broadcast=True)
+    if not check_and_emit_winner(session_id, ai_x, ai_y, ai_player_color):
+        print("aiMove!")
+        emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
 
 
-# 检查胜负条件
+# 检查胜赢条件
 def check_winner(board, x, y, player):
     directions = [
         (0, 1),  # 水平方向
@@ -127,19 +191,22 @@ def check_winner(board, x, y, player):
     return None
 
 
-# 在每次 AI 或玩家下棋后检查胜负
-def check_and_emit_winner(x, y, player):
-    winner = check_winner(board, x, y, player)
+# 在每次 AI 或玩家下棋后检查胜赢
+def check_and_emit_winner(session_id, x, y, player):
+    print("check_and_emit_winner(session_id, x, y, player):", session_id, x, y, player)
+    winner = check_winner(games[session_id]['board'], x, y, player)
     if winner:
+        games[session_id]['status'] = 'ended'
+        games[session_id]['winner'] = winner
         emit('gameOver', {'winner': winner}, broadcast=True)
+        print("check_and_emit_winner", "true")
         return True
     return False
 
 
 # 初始化游戏棋盘状态，用于 AI 的计算
 def _initialize_game_board(board):
-    """
-    根据当前棋盘状态初始化 Board 对象。
+    """根据当前棋盘状态初始化 Board 对象。
     """
     game_board = Board(width=board_size, height=board_size, n_in_row=5)
     game_board.init_board()

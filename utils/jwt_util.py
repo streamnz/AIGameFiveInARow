@@ -2,6 +2,7 @@ import jwt
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 # 密钥用于签名 JWT
 SECRET_KEY = "abc_def_ghi"
@@ -44,3 +45,27 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+# 从请求中提取 token，并进行解码
+def get_decoded_token_from_request():
+    try:
+        token = request.args.get('token')  # 从请求参数中获取 token
+        if not token:
+            raise Exception("Token is missing in request")
+
+        decoded_token = decode_jwt_token(token)
+        return decoded_token
+    except Exception as e:
+        raise Exception(f"Error decoding token: {str(e)}")
+
+
+# 解码 JWT token 并返回解码后的 payload
+def decode_jwt_token(token):
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return decoded_token
+    except ExpiredSignatureError:
+        raise Exception("Token has expired")
+    except InvalidTokenError:
+        raise Exception("Invalid token")

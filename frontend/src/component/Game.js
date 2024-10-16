@@ -23,7 +23,10 @@ const Game = () => {
 
     // WebSocket 连接与事件管理
     useEffect(() => {
-        socketRef.current = io("http://127.0.0.1:5000");
+        const jwtToken = localStorage.getItem('jwtToken'); // 从本地存储中获取 JWT token
+        socketRef.current = io("http://127.0.0.1:5000", {
+            query: { token: jwtToken }, // 在连接时传递 token
+        });
 
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
@@ -53,35 +56,6 @@ const Game = () => {
         };
     }, []);
 
-    // 检查胜利条件
-    const checkWinner = useCallback((newBoard, x, y, player) => {
-        const directions = [
-            [0, 1], [1, 0], [1, 1], [1, -1]
-        ];
-
-        for (let [dx, dy] of directions) {
-            let count = 1;
-
-            for (let dir = 1; dir >= -1; dir -= 2) {
-                let nx = x + dir * dx;
-                let ny = y + dir * dy;
-
-                while (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && newBoard[nx][ny] === player) {
-                    count++;
-                    nx += dir * dx;
-                    ny += dir * dy;
-                }
-            }
-
-            if (count >= 5) {
-                setWinner(player);
-                setGameOver(true);
-                socketRef.current.emit("gameOver", { winner: player });
-                return;
-            }
-        }
-    }, [socketRef]);
-
     // 处理玩家或AI的走子逻辑
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
         if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
@@ -96,7 +70,6 @@ const Game = () => {
             console.log("handleMove newBoard", newBoard);
             setBoard(newBoard);
             setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
-            checkWinner(newBoard, x, y, player);
 
             if (sendToServer) {
                 socketRef.current.emit("playerMove", { x, y, player });
@@ -104,7 +77,7 @@ const Game = () => {
         } else {
             console.log("Invalid move or game over.");
         }
-    }, [board, gameOver, checkWinner]);
+    }, [board, gameOver]);
 
     const handleCellClick = useCallback((x, y) => {
         console.log("Cell clicked at:", x, y);
@@ -153,12 +126,8 @@ const Game = () => {
         return (
             <div className="gomoku-game-container">
                 <h2>Select your color</h2>
-                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("black")}>
-                    Play as Black
-                </button>
-                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("white")}>
-                    Play as White
-                </button>
+                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("black")}>Play as Black</button>
+                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("white")}>Play as White</button>
             </div>
         );
     }
