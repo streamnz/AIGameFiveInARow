@@ -5,6 +5,7 @@ from ai.game import Board
 import torch
 import threading
 
+from source.AI import GomokuAI  # 导入 GomokuAI 类
 from utils.jwt_util import get_decoded_token_from_request, decode_jwt_token
 
 # 15x15 棋盘尺寸
@@ -22,6 +23,10 @@ ai_player = MCTSPlayer(policy_value_net.policy_value_fn, c_puct=5, n_playout=400
 # 增加线程锁以保证线程安全
 games = {}
 games_lock = threading.Lock()
+
+ai_instance = GomokuAI()
+
+ai_source = '！source'
 
 
 # 客户端连接时的处理逻辑
@@ -80,9 +85,18 @@ def handle_ai_first_move():
             board = games[session_id]['board']
             game_board = _initialize_game_board(board)
 
-            # AI 落子
-            ai_action = ai_player.get_action(game_board)
-            ai_x, ai_y = game_board.move_to_location(ai_action)
+            if ai_source == 'source':
+                # 使用 GomokuAI 模型执行第一步
+                ai_instance.firstMove()  # AI 默认在中心位置(7,7)下第一步
+                ai_x, ai_y = ai_instance.currentI, ai_instance.currentJ
+                board[ai_x][ai_y] = 'black'  # AI 落下黑子
+
+            else:
+                # 使用 AlphaZero AI 模型执行第一步
+                game_board = _initialize_game_board(board)  # 初始化 AlphaZero 的棋盘
+                ai_action = ai_player.get_action(game_board)  # 获取 AlphaZero 的第一步
+                ai_x, ai_y = game_board.move_to_location(ai_action)  # 转换 AlphaZero 返回的坐标
+                board[ai_x][ai_y] = 'black'  # AI 落下黑子
 
             # 更新游戏状态
             board[ai_x][ai_y] = 'black'  # X 为行，Y 为列，先横后纵
@@ -146,20 +160,26 @@ def ai_move(session_id, ai_player_color):
 
     # 初始化游戏棋盘
     board = games[session_id]['board']
-    game_board = _initialize_game_board(board)
 
-    # AI 落子
-    ai_action = ai_player.get_action(game_board)
-    ai_x, ai_y = game_board.move_to_location(ai_action)
-    board[ai_x][ai_y] = ai_player_color
+    if ai_source == 'source':
+        # 使用 GomokuAI 模型进行决策
+        ai_instance.boardMap = _convert_board_to_source_format(board)  # 将棋盘转换为 source AI 格式
+        move_i, move_j = ai_instance.get_action()  # 使用 GomokuAI 获取下一步
+    else:
+        # 使用 AlphaZero AI 模型进行决策
+        game_board = _initialize_game_board(board)  # 初始化 AlphaZero 的棋盘
+        ai_action = ai_player.get_action(game_board)  # 获取 AlphaZero 的下一步
+        move_i, move_j = game_board.move_to_location(ai_action)  # 转换 AlphaZero 返回的坐标
+
+    board[move_i][move_j] = ai_player_color
     next_turn = 'black' if ai_player_color == 'white' else 'white'  # 切换回合
     games[session_id]['current_player'] = next_turn
 
-    print(f"AI placed {ai_player_color} piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
+    print(f"AI placed {ai_player_color} piece at ({move_i}, {move_j}) for session ID: {session_id}")
 
     # 检查 AI 是否获胜
-    if not check_and_emit_winner(session_id, ai_x, ai_y, ai_player_color):
-        print("aiMove! and nextTurn",next_turn)
+    if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
+        print("aiMove! and nextTurn", next_turn)
         # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
         emit('updateBoard', {'board': games[session_id]['board'], 'next_turn': next_turn},
              broadcast=True)
@@ -251,3 +271,15 @@ def handle_logout():
     if session_id in games:
         del games[session_id]  # 删除用户的游戏状态
         print(f"Game data cleared for session ID: {session_id}")
+
+
+# Helper function to convert the board format to source AI format
+def _convert_board_to_source_format(board):
+    source_board_map = [[0 for _ in range(len(board))] for _ in range(len(board))]
+    for i in range(len(board)):
+        for j in range(len(board)):
+            if board[i][j] == 'black':
+                source_board_map[i][j] = 1  # 黑子在 GomokuAI 中表示为 1
+            elif board[i][j] == 'white':
+                source_board_map[i][j] = -1  # 白子在 GomokuAI 中表示为 -1
+    return source_board_map

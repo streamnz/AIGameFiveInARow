@@ -209,3 +209,17 @@ class GomokuAI():
             return 'Human wins!'
         else:
             return 'No winner yet'
+
+    def get_action(self):
+        """
+        获取 AI 的下一步动作，并返回落子坐标。
+        """
+        if self.turn == 0:  # 如果是第一次走棋
+            self.firstMove()  # 在中心点下第一颗棋子
+            self.turn += 1
+            return self.currentI, self.currentJ
+        else:
+            # 调用 alphaBetaPruning 来计算最佳落子点
+            self.alphaBetaPruning(self.depth, self.boardValue, self.nextBound, -math.inf, math.inf, True)
+            self.turn += 1
+            return self.currentI, self.currentJ
