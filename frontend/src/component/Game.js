@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
 import "./Game.css";
 
-// 单独的棋盘格子组件，使用 React.memo 防止不必要的重新渲染
 const GomokuCell = React.memo(({ x, y, value, onClick }) => {
     return (
         <div className="gomoku-cell" onClick={() => onClick(x, y)}>
@@ -13,37 +12,37 @@ const GomokuCell = React.memo(({ x, y, value, onClick }) => {
 });
 
 const Game = () => {
-    const [board, setBoard] = useState(Array(15).fill().map(() => Array(15).fill(null))); // 初始化15x15的棋盘
-    const [currentPlayer, setCurrentPlayer] = useState("black"); // 当前玩家
+    const [board, setBoard] = useState(Array(15).fill(null).map(() => Array(15).fill(null)));
+    const [currentPlayer, setCurrentPlayer] = useState("black");
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
-    const [playerColor, setPlayerColor] = useState(null); // 玩家选择的颜色
-
+    const [playerColor, setPlayerColor] = useState(null);
     const socketRef = useRef(null);
 
-    // WebSocket 连接与事件管理
+    // 处理游戏结束
+    const handleGameOver = useCallback((message) => {
+        setWinner(message.winner);
+        setGameOver(true);
+    }, []);
+
+    // 更新棋盘状态
+    const handleUpdateBoard = useCallback(({ board: newBoard }) => {
+        setBoard(newBoard);
+        setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
+    }, []);
+
     useEffect(() => {
-        const jwtToken = localStorage.getItem('jwtToken'); // 从本地存储中获取 JWT token
+        const jwtToken = localStorage.getItem("jwtToken");
         socketRef.current = io("http://127.0.0.1:5000", {
-            query: { token: jwtToken }, // 在连接时传递 token
+            query: { token: jwtToken },
         });
 
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
         });
 
-        const handleGameOver = (message) => {
-            setWinner(message.winner);
-            setGameOver(true);
-        };
-
-        const handleAiMove = ({ x, y, player }) => {
-            console.log("AI Move", { x, y, player });
-            handleMove(x, y, player, false); // AI 落子后更新棋盘
-        };
-
         socketRef.current.on("gameOver", handleGameOver);
-        socketRef.current.on("aiMove", handleAiMove);
+        socketRef.current.on("updateBoard", handleUpdateBoard);
 
         socketRef.current.on("disconnect", () => {
             console.log("Disconnected from Socket.IO server");
@@ -51,23 +50,21 @@ const Game = () => {
 
         return () => {
             socketRef.current.off("gameOver", handleGameOver);
-            socketRef.current.off("aiMove", handleAiMove);
+            socketRef.current.off("updateBoard", handleUpdateBoard);
             socketRef.current.disconnect();
         };
-    }, []);
+    }, [handleGameOver, handleUpdateBoard]);
 
-    // 处理玩家或AI的走子逻辑
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
         if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
             console.log("Invalid coordinates or board row undefined:", x, y);
             return;
         }
 
-        if (!gameOver && board[x][y] === null) {
+        if (!gameOver && board[x][y] === "") {
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
-            console.log("handleMove newBoard", newBoard);
             setBoard(newBoard);
             setCurrentPlayer((prevPlayer) => (prevPlayer === "black" ? "white" : "black"));
 
@@ -80,28 +77,30 @@ const Game = () => {
     }, [board, gameOver]);
 
     const handleCellClick = useCallback((x, y) => {
-        console.log("Cell clicked at:", x, y);
+        if (gameOver) {
+            alert("Game is over!");
+            return;
+        }
+
         if (currentPlayer !== playerColor) {
             alert("It's not your turn! Please wait for the opponent.");
             return;
         }
-
-        if (board[x][y] === null) {
+        console.log("handleCellClick", x, y,board[x][y]);
+        if (board[x][y] === "" || board[x][y] === null) {
             handleMove(x, y, currentPlayer);
         } else {
-            console.log("Invalid move or playerColor not set");
+            alert("Invalid move");
         }
-    }, [board, currentPlayer, playerColor, handleMove]);
+    }, [board, currentPlayer, playerColor, gameOver, handleMove]);
 
-    // 玩家选择颜色
     const handleColorSelection = (color) => {
         setPlayerColor(color);
-        if (color === 'white') {
+        if (color === "white") {
             socketRef.current.emit("aiFirstMove");
         }
     };
 
-    // 渲染棋盘
     const renderBoard = () => {
         return (
             <div className="gomoku-game-board">
@@ -126,8 +125,18 @@ const Game = () => {
         return (
             <div className="gomoku-game-container">
                 <h2>Select your color</h2>
-                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("black")}>Play as Black</button>
-                <button className="gomoku-player-select-white-black" onClick={() => handleColorSelection("white")}>Play as White</button>
+                <button
+                    className="gomoku-player-select-white-black"
+                    onClick={() => handleColorSelection("black")}
+                >
+                    Play as Black
+                </button>
+                <button
+                    className="gomoku-player-select-white-black"
+                    onClick={() => handleColorSelection("white")}
+                >
+                    Play as White
+                </button>
             </div>
         );
     }
@@ -135,7 +144,11 @@ const Game = () => {
     return (
         <div className="gomoku-game-container">
             <h2>Gomoku Game</h2>
-            {gameOver ? <h3>Winner: {winner}</h3> : <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>}
+            {gameOver ? (
+                <h3>Winner: {winner}</h3>
+            ) : (
+                <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>
+            )}
             {renderBoard()}
         </div>
     );

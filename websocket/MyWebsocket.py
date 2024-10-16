@@ -91,10 +91,13 @@ def handle_ai_first_move():
             print(f"AI placed black piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
 
             # 发送 AI 的落子信息给客户端
-            emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
+            emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
+            # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': 'black'}, broadcast=True)
     except Exception as e:
         print(f"Error during AI first move: {str(e)}")
         disconnect()
+
+
 
 
 # 处理玩家的走子动作
@@ -158,7 +161,8 @@ def ai_move(session_id, ai_player_color):
     # 检查 AI 是否获胜
     if not check_and_emit_winner(session_id, ai_x, ai_y, ai_player_color):
         print("aiMove!")
-        emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
+        # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
+        emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
 
 
 # 检查胜赢条件
