@@ -4,6 +4,7 @@ import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
 const GomokuCell = React.memo(({x, y, value, onClick}) => {
+    console.log(`Rendering cell at (${x}, ${y}) with value: ${value}`);
     return (
         <div className="gomoku-cell" onClick={() => onClick(x, y)}>
             {value === "black" && <div className="gomoku-piece gomoku-piece-black"></div>}
@@ -12,13 +13,20 @@ const GomokuCell = React.memo(({x, y, value, onClick}) => {
     );
 });
 
-const Game = () => {
+const Game = React.memo(() => {
     const [board, setBoard] = useState(Array(15).fill(null).map(() => Array(15).fill(null)));
     const [currentPlayer, setCurrentPlayer] = useState("black");
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null);
     const socketRef = useRef(null);
+
+    const renderCount = useRef(0);
+
+    useEffect(() => {
+        renderCount.current += 1;
+        console.log("Game component rendered", renderCount.current, "times");
+    });
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
@@ -123,6 +131,7 @@ const Game = () => {
     };
 
     const renderBoard = () => {
+        console.log("Rendering the board");
         return (
             <div className="gomoku-game-board">
                 {board.map((row, rowIndex) => (
@@ -177,6 +186,6 @@ const Game = () => {
             {gameOver && <WinnerModal winner={winner} onClose={handleCloseModal}/>}
         </div>
     );
-};
+});
 
 export default Game;
