@@ -1,3 +1,5 @@
+import math
+
 from flask_socketio import emit, disconnect
 from ai.human_play import PolicyValueNet
 from ai.mcts_alphaZero import MCTSPlayer
@@ -26,7 +28,7 @@ games_lock = threading.Lock()
 
 ai_instance = GomokuAI()
 
-ai_source = '！source'
+ai_source = '!source'
 
 
 # 客户端连接时的处理逻辑
@@ -162,9 +164,12 @@ def ai_move(session_id, ai_player_color):
     board = games[session_id]['board']
 
     if ai_source == 'source':
-        # 使用 GomokuAI 模型进行决策
-        ai_instance.boardMap = _convert_board_to_source_format(board)  # 将棋盘转换为 source AI 格式
-        move_i, move_j = ai_instance.get_action()  # 使用 GomokuAI 获取下一步
+        # 使用 GomokuAI 的剪枝算法
+        source_board_map = _convert_board_to_source_format(board)
+        ai_instance.boardMap = source_board_map
+        ai_instance.alphaBetaPruning(ai_instance.depth, ai_instance.boardValue, ai_instance.nextBound, -math.inf,
+                                     math.inf, True)
+        move_i, move_j = ai_instance.currentI, ai_instance.currentJ
     else:
         # 使用 AlphaZero AI 模型进行决策
         game_board = _initialize_game_board(board)  # 初始化 AlphaZero 的棋盘

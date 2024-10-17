@@ -4,7 +4,7 @@ import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
 const GomokuCell = React.memo(({x, y, value, onClick}) => {
-    console.log(`Rendering cell at (${x}, ${y}) with value: ${value}`);
+    console.log("Rendering cell at", x, y);
     return (
         <div className="gomoku-cell" onClick={() => onClick(x, y)}>
             {value === "black" && <div className="gomoku-piece gomoku-piece-black"></div>}
@@ -30,7 +30,7 @@ const Game = React.memo(() => {
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
-        setWinner(message.winner);
+        setWinner(message.winner,);
         setGameOver(true);
     }, []);
 
@@ -183,7 +183,11 @@ const Game = React.memo(() => {
             )}
             {renderBoard()}
             {/* 渲染 WinnerModal */}
-            {gameOver && <WinnerModal winner={winner} onClose={handleCloseModal}/>}
+            {gameOver && <WinnerModal
+                winner={winner}
+                playerColor={playerColor}  // 传递玩家颜色
+                onClose={handleCloseModal}
+            />}
         </div>
     );
 });
