@@ -15,7 +15,7 @@ function Navbar({ onLoginClick, onRegisterClick }) {
                 {loggedInUser ? (
                     // 如果用户已登录，显示 Welcome 和 Settings
                     <div className="user-info">
-                        <span>Welcome, {loggedInUser.username}!</span>
+                        <span>Kia Ora, {loggedInUser.username}!</span>
                         <button className="navbar-btn settings-btn">Settings</button>
                         <button className="navbar-btn logout-btn" onClick={handleLogout}>Logout</button>
                     </div>

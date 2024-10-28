@@ -26,13 +26,13 @@ const WinnerModal = ({ winner, playerColor, onClose }) => {
                 <p className="animate__animated animate__fadeInUp animate__delay-1s">
                     {isWinner ? (
                         <>
-                            🎉 <strong>Congratulations, {userName}!</strong> 🎉
+                            🎉 <strong>Kua wikitoria koe, {userName}!</strong> 🎉
                             <br />
                             You, as the <strong>{winner}</strong> side, won the game!
                         </>
                     ) : (
                         <>
-                            😔 <strong>Sorry, {userName}!</strong>
+                            😔 <strong>Aroha mai, {userName}!</strong>
                             <br />
                             You, as the <strong>{playerColor}</strong> side, lost the game to the <strong>{winner}</strong> side.
                         </>

@@ -56,7 +56,7 @@ function App() {
                         <div>
                             <header className="App-header">
                                 <div className="container">
-                                    <h1>Welcome to Stream NZ!</h1>
+                                    <h1>Kia Ora, Welcome to Stream NZ!</h1>
                                     <h2>Beat AI Player to earn ETH!</h2>
 
                                     {/* Start Game按钮 */}
