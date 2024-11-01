@@ -95,12 +95,6 @@ The `requirements.txt` file includes all the Python dependencies required for th
 - **WTForms & Flask-WTF**: For user registration and login form validation.
 - **Matplotlib & Pandas**: Used for evaluating AI performance (optional).
 
-## Screenshots
-
-- **Login Page**:
-    ![Login Page](static/images/login_screenshot.png)
-- **Game Board**:
-    ![Game Board](static/images/game_board_screenshot.png)
 
 ## Future Improvements
 
