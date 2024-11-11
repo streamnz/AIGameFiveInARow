@@ -5,35 +5,39 @@ This is a web-based implementation of the classic **Gomoku (Five in a Row)** gam
 ## Project Structure
 `````
 FiveChessWithAI/
-│
-├── app.py                       # Main entry point for the Flask app
-├── config.py                    # Configuration file for the app
-├── controller/                  # Controller layer
+├── ai/
+│   ├── game.py                  # Defines Board and Game classes for Gomoku
+│   ├── human_play.py            # Implements human vs AI gameplay
+│   ├── mcts_alphaZero.py        # Monte Carlo Tree Search for AlphaZero
+│   ├── policy_value_net_pytorch.py # PyTorch implementation of policy-value network
+│   ├── train.py                 # Training pipeline for AlphaZero
+│   └── README.md                # Documentation for AI implementation
+├── app.py                       # Flask application main entry point
+├── config.py                    # Application configuration
+├── controller/
 │   ├── game_controller.py       # Handles game-related routes and logic
 │   └── user_controller.py       # Handles user authentication and leaderboard
-├── dao/                         # Data Access Layer (DAO)
+├── dao/
 │   ├── game_dao.py              # Database access for game state
 │   └── user_dao.py              # Database access for user management
-├── model/                       # Database models
+├── model/
 │   └── user.py                  # User model for authentication
-├── service/                     # Service layer for game logic and user management
-│   ├── game_service.py          # Contains business logic for the game
-│   └── user_service.py          # Contains logic for managing users and authentication
-├── source/                      # Contains core game logic and AI
+├── service/
+│   ├── game_service.py          # Business logic for the game
+│   └── user_service.py          # Logic for managing users and authentication
+├── source/
 │   ├── AI.py                    # AI logic (Minimax with Alpha-Beta pruning)
 │   ├── gomoku.py                # Game state management
 │   └── utils.py                 # Helper functions for the game
 ├── static/                      # Static files (CSS, images, JavaScript)
-│   ├── css/
-│   │   └── style.css            # Styles for the game
-│   ├── img/                     # Images for the game (board, pieces, buttons)
-│   └── js/
-│       └── game.js              # Frontend game logic (JavaScript)
 ├── templates/                   # HTML templates
-│   ├── index.html               # Game board interface
-│   └── login.html               # User login and registration page
+├── utils/
+│   ├── config.ini               # Configuration file
+│   └── jwt_util.py              # JWT utility functions
+├── websocket/
+│   └── MyWebsocket.py           # WebSocket implementation for real-time gameplay
 ├── requirements.txt             # Python dependencies
-└── README.md                    #
+└── README.md                    # Project documentation
 `````
 ## Features
 
