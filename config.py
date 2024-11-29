@@ -6,11 +6,11 @@ import logging
 
 class Config:
     # MySQL Database Configuration
-    MYSQL_HOST = 'rm-uf6wz9309g448ly67no.mysql.rds.aliyuncs.com'
+    MYSQL_HOST = 'ai-game.cfkuy6mi4nng.ap-southeast-2.rds.amazonaws.com'
     MYSQL_PORT = 3306
     MYSQL_DATABASE = 'ai-game'
     MYSQL_USER = 'chenghao'
-    MYSQL_ENCRYPTED_PASSWORD = 'gAAAAABm7lDveEoiAYFwXOrNnGcrLGPAAzVur5KBmg2bj_EoFczIrjZEoBBJFWVs3wYXV-ihZJ-b1-19St_-9IWbdPal9_SfZg=='
+    MYSQL_ENCRYPTED_PASSWORD = 'gAAAAABnSklIg3Xbtd9BLwJ_22-IFjRUqYrwkrfY9KkAZOjbxYpSZmJdrkJUGmQJPC5P2SLRGJAdtRMB-0_JV9VoNlugpXmj5w=='
     MYSQL_DB_KEY = 'L3tLdmglGKFdIeYe9xHLPa_ebkN3TX-NVZGK79ExoQk='
 
     @staticmethod
