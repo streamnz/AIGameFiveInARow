@@ -1,0 +1,10 @@
+# requirements-ai.txt (优化版本)
+
+# 数据处理
+numpy~=1.26.4
+
+# 可选：可视化（如果需要）
+matplotlib==3.5.1
+
+# pygame（游戏逻辑）保留
+pygame~=2.6.0
