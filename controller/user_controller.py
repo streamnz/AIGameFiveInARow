@@ -89,3 +89,8 @@ def logout():
 def leaderboard():
     leaderboard = user_service.get_leaderboard()
     return jsonify({"status": "success", "leaderboard": leaderboard})
+
+
+@user_controller.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "success", "message": "Service is running healthy."}), 200
