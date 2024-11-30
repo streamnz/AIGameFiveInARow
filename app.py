@@ -58,4 +58,4 @@ socketio.on_event('logout', handle_logout)
 if __name__ == '__main__':
     app = create_app()
     # 在 5000 端口同时暴露 HTTP 和 WebSocket
-    socketio.run(app, host='127.0.0.1', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
