@@ -1,5 +1,5 @@
 # Flask 相关依赖
-Flask>=2.3.3
+Flask==2.2.5
 Flask-SQLAlchemy==2.5.1
 Flask-Migrate==3.1.0
 flask_cors
