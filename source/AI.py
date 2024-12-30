@@ -133,22 +133,29 @@ class GomokuAI():
         return board_value + value_after - value_before
 
     def alphaBetaPruning(self, depth, board_value, bound, alpha, beta, maximizingPlayer):
+        print(
+            f"[DEBUG] Entering alphaBetaPruning: depth={depth}, board_value={board_value}, alpha={alpha}, beta={beta}, maximizingPlayer={maximizingPlayer}")
+
         if depth <= 0 or (self.checkResult() != None):
+            print(f"[DEBUG] Leaf node or terminal state reached: board_value={board_value}")
             return board_value
 
         if self.rollingHash in self.TTable and self.TTable[self.rollingHash][1] >= depth:
+            print(f"[DEBUG] Transposition table hit: value={self.TTable[self.rollingHash][0]}")
             return self.TTable[self.rollingHash][0]
 
         if maximizingPlayer:
             max_val = -math.inf
             for child in self.childNodes(bound):
                 i, j = child[0], child[1]
+                print(f"[DEBUG] Maximizing player evaluating move: ({i}, {j})")
                 new_bound = dict(bound)
                 new_val = self.evaluate(i, j, board_value, 1, new_bound)
                 self.boardMap[i][j] = 1
                 self.rollingHash ^= self.zobristTable[i][j][0]
                 self.updateBound(i, j, new_bound)
                 eval = self.alphaBetaPruning(depth - 1, new_val, new_bound, alpha, beta, False)
+                print(f"[DEBUG] Move ({i}, {j}) evaluated with value: {eval}")
                 if eval > max_val:
                     max_val = eval
                     if depth == self.depth:
@@ -156,11 +163,14 @@ class GomokuAI():
                         self.currentJ = j
                         self.boardValue = eval
                         self.nextBound = new_bound
+                        print(
+                            f"[DEBUG] New best move found: ({self.currentI}, {self.currentJ}) with value: {self.boardValue}")
                 alpha = max(alpha, eval)
                 self.boardMap[i][j] = 0
                 self.rollingHash ^= self.zobristTable[i][j][0]
                 del new_bound
                 if beta <= alpha:
+                    print(f"[DEBUG] Pruning branches with alpha: {alpha}, beta: {beta}")
                     break
             utils.update_TTable(self.TTable, self.rollingHash, max_val, depth)
             return max_val
@@ -168,12 +178,14 @@ class GomokuAI():
             min_val = math.inf
             for child in self.childNodes(bound):
                 i, j = child[0], child[1]
+                print(f"[DEBUG] Minimizing player evaluating move: ({i}, {j})")
                 new_bound = dict(bound)
                 new_val = self.evaluate(i, j, board_value, -1, new_bound)
                 self.boardMap[i][j] = -1
                 self.rollingHash ^= self.zobristTable[i][j][1]
                 self.updateBound(i, j, new_bound)
                 eval = self.alphaBetaPruning(depth - 1, new_val, new_bound, alpha, beta, True)
+                print(f"[DEBUG] Move ({i}, {j}) evaluated with value: {eval}")
                 if eval < min_val:
                     min_val = eval
                     if depth == self.depth:
@@ -181,11 +193,14 @@ class GomokuAI():
                         self.currentJ = j
                         self.boardValue = eval
                         self.nextBound = new_bound
+                        print(
+                            f"[DEBUG] New best move found: ({self.currentI}, {self.currentJ}) with value: {self.boardValue}")
                 beta = min(beta, eval)
                 self.boardMap[i][j] = 0
                 self.rollingHash ^= self.zobristTable[i][j][1]
                 del new_bound
                 if beta <= alpha:
+                    print(f"[DEBUG] Pruning branches with alpha: {alpha}, beta: {beta}")
                     break
             utils.update_TTable(self.TTable, self.rollingHash, min_val, depth)
             return min_val
@@ -215,11 +230,28 @@ class GomokuAI():
         获取 AI 的下一步动作，并返回落子坐标。
         """
         if self.turn == 0:  # 如果是第一次走棋
-            self.firstMove()  # 在中心点下第一颗棋子
+            print("[DEBUG] First move, setting initial position.")
+            self.turn += 1
+
+        # 调用 alphaBetaPruning 来计算最佳落子点
+        self.alphaBetaPruning(self.depth, self.boardValue, self.nextBound, -math.inf, math.inf, True)
+        print(f"[DEBUG] Calculated position: ({self.currentI}, {self.currentJ})")
+
+        if self.isValid(self.currentI, self.currentJ):  # 验证计算出的位置是否有效
+            print(f"[DEBUG] Valid move found at: ({self.currentI}, {self.currentJ})")
             self.turn += 1
             return self.currentI, self.currentJ
         else:
-            # 调用 alphaBetaPruning 来计算最佳落子点
-            self.alphaBetaPruning(self.depth, self.boardValue, self.nextBound, -math.inf, math.inf, True)
-            self.turn += 1
-            return self.currentI, self.currentJ
+            print(f"[ERROR] Invalid move at: ({self.currentI}, {self.currentJ}), searching for next best position.")
+            # 如果计算出的位置无效，选择下一个最佳位置
+            bound_sorted = sorted(self.nextBound.items(), key=lambda el: el[1], reverse=True)
+            if bound_sorted:
+                pos = bound_sorted[0][0]
+                self.currentI, self.currentJ = pos[0], pos[1]
+                print(f"[DEBUG] Fallback position chosen: ({self.currentI}, {self.currentJ})")
+                self.turn += 1
+                return self.currentI, self.currentJ
+            else:
+                print("[ERROR] No valid positions available, returning (-1, -1).")
+                # 如果没有可用位置，返回无效坐标
+                return -1, -1

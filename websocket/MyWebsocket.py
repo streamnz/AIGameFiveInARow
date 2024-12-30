@@ -28,7 +28,7 @@ games_lock = threading.Lock()
 
 ai_instance = GomokuAI()
 
-ai_source = '!source'
+ai_source = 'source'
 
 
 # 客户端连接时的处理逻辑
@@ -92,7 +92,7 @@ def handle_ai_first_move():
                 ai_instance.firstMove()  # AI 默认在中心位置(7,7)下第一步
                 ai_x, ai_y = ai_instance.currentI, ai_instance.currentJ
                 board[ai_x][ai_y] = 'black'  # AI 落下黑子
-
+                ai_instance.boardMap = _convert_board_to_source_format(board)
             else:
                 # 使用 AlphaZero AI 模型执行第一步
                 game_board = _initialize_game_board(board)  # 初始化 AlphaZero 的棋盘
@@ -145,6 +145,9 @@ def handle_player_move(data):
                 if not check_and_emit_winner(session_id, x, y, player):
                     print("AI is making its move...")
                     ai_move(session_id, game['current_player'])  # AI 下棋
+                # 确保 AI 的棋盘状态被更新
+                if ai_source == 'source':
+                    ai_instance.boardMap = _convert_board_to_source_format(board)
             else:
                 print(f"Invalid move: Position ({x}, {y}) is already occupied for session ID: {session_id}")
     except Exception as e:
@@ -152,42 +155,48 @@ def handle_player_move(data):
         disconnect()
 
 
-# AI 下棋逻辑
 def ai_move(session_id, ai_player_color):
     if session_id not in games:
-        print(f"No game found for session ID: {session_id}")
+        print(f"[ERROR] No game found for session ID: {session_id}")
         return
 
-    print(f"AI is calculating its next move for session ID: {session_id}")
+    print(f"[INFO] AI is calculating its next move for session ID: {session_id}")
 
-    # 初始化游戏棋盘
     board = games[session_id]['board']
 
-    if ai_source == 'source':
-        # 使用 GomokuAI 的剪枝算法
-        source_board_map = _convert_board_to_source_format(board)
-        ai_instance.boardMap = source_board_map
-        ai_instance.alphaBetaPruning(ai_instance.depth, ai_instance.boardValue, ai_instance.nextBound, -math.inf,
-                                     math.inf, True)
-        move_i, move_j = ai_instance.currentI, ai_instance.currentJ
-    else:
-        # 使用 AlphaZero AI 模型进行决策
-        game_board = _initialize_game_board(board)  # 初始化 AlphaZero 的棋盘
-        ai_action = ai_player.get_action(game_board)  # 获取 AlphaZero 的下一步
-        move_i, move_j = game_board.move_to_location(ai_action)  # 转换 AlphaZero 返回的坐标
+    try:
+        if ai_source == 'source':
+            # 更新 AI 实例的棋盘状态
+            ai_instance.boardMap = _convert_board_to_source_format(board)
+            # 使用 AI 的 get_action 方法获取下一步动作
+            move_i, move_j = ai_instance.get_action()
+            print(f"[DEBUG] AI (source) chose position: ({move_i}, {move_j})")
+        else:
+            game_board = _initialize_game_board(board)
+            ai_action = ai_player.get_action(game_board)
+            move_i, move_j = game_board.move_to_location(ai_action)
+            print(f"[DEBUG] AI (AlphaZero) chose position: ({move_i}, {move_j})")
 
-    board[move_i][move_j] = ai_player_color
-    next_turn = 'black' if ai_player_color == 'white' else 'white'  # 切换回合
-    games[session_id]['current_player'] = next_turn
+        # 验证和执行移动
+        if 0 <= move_i < len(board) and 0 <= move_j < len(board[0]) and board[move_i][move_j] == '':
+            board[move_i][move_j] = ai_player_color
+            next_turn = 'black' if ai_player_color == 'white' else 'white'
+            games[session_id]['current_player'] = next_turn
+            print(f"[INFO] AI placed {ai_player_color} piece at ({move_i}, {move_j})")
 
-    print(f"AI placed {ai_player_color} piece at ({move_i}, {move_j}) for session ID: {session_id}")
+            # 检查获胜条件并更新棋盘
+            if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
+                emit('updateBoard', {
+                    'board': games[session_id]['board'],
+                    'next_turn': next_turn
+                }, broadcast=True)
+                print(f"[INFO] Next turn: {next_turn}")
+        else:
+            print(f"[ERROR] AI calculated an invalid move: ({move_i}, {move_j})")
 
-    # 检查 AI 是否获胜
-    if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
-        print("aiMove! and nextTurn", next_turn)
-        # emit('aiMove', {'x': int(ai_x), 'y': int(ai_y), 'player': ai_player_color}, broadcast=True)
-        emit('updateBoard', {'board': games[session_id]['board'], 'next_turn': next_turn},
-             broadcast=True)
+    except Exception as e:
+        print(f"[ERROR] Exception occurred during AI move calculation: {str(e)}")
+
 
 
 # 检查胜赢条件

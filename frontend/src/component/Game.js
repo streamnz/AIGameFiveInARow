@@ -43,7 +43,7 @@ const Game = React.memo(() => {
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
-        socketRef.current = io("https://aiGame.streamnz.com", {
+        socketRef.current = io("http://127.0.0.1:5000", {
             query: {token: jwtToken},
         });
 
