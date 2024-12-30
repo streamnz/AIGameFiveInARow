@@ -17,7 +17,7 @@ python-engineio>=4.3.0
 
 # 数据库和SQL相关依赖
 SQLAlchemy==1.4.32
-mysql-connector-python~=9.0.0
+mysql-connector-python~=9.1.0
 PyMySQL
 
 # 安全和密码处理
@@ -32,7 +32,7 @@ pygame~=2.6.0
 PyJWT~=2.7.0
 
 # 生产环境 Web 服务器
-gunicorn>=20.1.0  # 如果你需要在生产环境中部署 Flask
+gunicorn>=22.1.0  # 如果你需要在生产环境中部署 Flask
 
 # 异步 Web 服务器选项 (必选其一)
 gevent>=21.12.0  # 替代 Flasks 的内置服务器，支持 Flask-SocketIO
@@ -44,6 +44,5 @@ Flask~=2.3.3
 Werkzeug>=2.3.7  # 升级Werkzeug以避免MacOS上的kqueue相关问题
 
 numpy~=1.26.4
-torch~=2.2.2
 websocket-client~=1.8.0
 gradio~=3.33.1
