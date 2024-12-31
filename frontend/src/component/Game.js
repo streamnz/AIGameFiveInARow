@@ -19,6 +19,7 @@ const Game = React.memo(() => {
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null);
+    const [isWaitingForAI, setIsWaitingForAI] = useState(false); // 新增状态
     const socketRef = useRef(null);
 
     const renderCount = useRef(0);
@@ -30,7 +31,7 @@ const Game = React.memo(() => {
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
-        setWinner(message.winner,);
+        setWinner(message.winner);
         setGameOver(true);
     }, []);
 
@@ -39,7 +40,12 @@ const Game = React.memo(() => {
         console.log("handleUpdateBoard next_turn", next_turn);
         setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
         setBoard(newBoard);
-    }, []);
+
+        // 如果AI完成下棋，解除等待状态
+        if (next_turn === playerColor) {
+            setIsWaitingForAI(false);
+        }
+    }, [playerColor]);
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
@@ -71,19 +77,19 @@ const Game = React.memo(() => {
             return;
         }
         if (gameOver) {
-            alert("The Game is Over!")
+            alert("The Game is Over!");
             return;
         }
-        console.log("board[x][y]", board[x][y]);
         if (board[x][y] === "" || board[x][y] === null) {
-            // 用户点击，提前显示点击效果
             const newBoard = board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
             setBoard(newBoard);
+
             if (sendToServer) {
-                console.log("playerMove", {x, y, player})
+                console.log("playerMove", {x, y, player});
                 socketRef.current.emit("playerMove", {x, y, player});
+                setIsWaitingForAI(true); // 玩家下棋后等待AI操作
             }
         } else {
             console.log("Invalid move!");
@@ -95,18 +101,20 @@ const Game = React.memo(() => {
             alert("Game is over!");
             return;
         }
-        console.log("currentPlayer and playerColor", currentPlayer, playerColor)
+        if (isWaitingForAI) { // 检查是否等待AI
+            alert("It's not your turn! Waiting for AI to make a move.");
+            return;
+        }
         if (currentPlayer !== playerColor) {
             alert("It's not your turn! Please wait for the opponent.");
             return;
         }
-
         if (board[x][y] === "" || board[x][y] === null) {
             handleMove(x, y, currentPlayer);
         } else {
             alert("Invalid move");
         }
-    }, [board, currentPlayer, playerColor, gameOver, handleMove]);
+    }, [board, currentPlayer, playerColor, gameOver, isWaitingForAI, handleMove]);
 
     // 关闭模态框，重置游戏状态并显示颜色选择页面
     const handleCloseModal = () => {
@@ -182,10 +190,9 @@ const Game = React.memo(() => {
                 <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>
             )}
             {renderBoard()}
-            {/* 渲染 WinnerModal */}
             {gameOver && <WinnerModal
                 winner={winner}
-                playerColor={playerColor}  // 传递玩家颜色
+                playerColor={playerColor}
                 onClose={handleCloseModal}
             />}
         </div>
