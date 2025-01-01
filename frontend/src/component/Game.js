@@ -11,52 +11,54 @@ const GomokuCell = React.memo(({x, y, value, onClick}) => {
         </div>
     );
 });
-
 const Game = React.memo(() => {
     const [board, setBoard] = useState(Array(15).fill(null).map(() => Array(15).fill(null)));
-    const [currentPlayer, setCurrentPlayer] = useState("black");
+    const [gameState, setGameState] = useState({
+        currentPlayer: null,
+        playerColor: null,
+        canPlayerMove: false, // 合并后的状态
+    });
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
-    const [playerColor, setPlayerColor] = useState(null);
     const socketRef = useRef(null);
 
-
-    // 处理游戏结束
     const handleGameOver = useCallback((message) => {
-        setWinner(message.winner);
+        if (message && message.winner) {
+            setWinner(message.winner);
+        } else {
+            setWinner("Draw or No Winner");
+        }
         setGameOver(true);
     }, []);
 
-    // 更新棋盘状态并根据当前玩家的颜色更新 currentPlayer
     const handleUpdateBoard = useCallback(({board: newBoard, next_turn}) => {
-        console.log("handleUpdateBoard next_turn", next_turn);
-        setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
         setBoard(newBoard);
-    }, [playerColor]);
+        setGameState((prev) => ({
+            ...prev,
+            currentPlayer: next_turn,
+            canPlayerMove: next_turn === prev.playerColor, // 更新合并后的状态
+        }));
+    }, []);
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
         socketRef.current = io("https://aigame.streamnz.com", {
             query: {token: jwtToken},
         });
-
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
         });
-
         socketRef.current.on("gameOver", handleGameOver);
         socketRef.current.on("updateBoard", handleUpdateBoard);
-
         socketRef.current.on("disconnect", () => {
             console.log("Disconnected from Socket.IO server");
         });
-
         return () => {
             socketRef.current.off("gameOver", handleGameOver);
             socketRef.current.off("updateBoard", handleUpdateBoard);
             socketRef.current.disconnect();
         };
-    }, []);
+    }, [handleGameOver, handleUpdateBoard]);
 
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
         if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
@@ -72,10 +74,13 @@ const Game = React.memo(() => {
                 row.map((cell, colIndex) => (rowIndex === x && colIndex === y ? player : cell))
             );
             setBoard(newBoard);
-
             if (sendToServer) {
                 console.log("playerMove", {x, y, player});
                 socketRef.current.emit("playerMove", {x, y, player});
+                setGameState((prev) => ({
+                    ...prev,
+                    canPlayerMove: false, // 设置为false，等待AI响应
+                }));
             }
         } else {
             console.log("Invalid move!");
@@ -87,35 +92,37 @@ const Game = React.memo(() => {
             alert("Game is over!");
             return;
         }
-        if (currentPlayer !== playerColor) {
-            alert("It's not your turn! Please wait for the opponent.");
+        if (!gameState.canPlayerMove) { // 使用合并后的状态
+            alert("It's not your turn! Please wait for the AI.");
             return;
         }
         if (board[x][y] === "" || board[x][y] === null) {
-            handleMove(x, y, currentPlayer);
+            handleMove(x, y, gameState.currentPlayer);
         } else {
             alert("Invalid move");
         }
-    }, [board, currentPlayer, playerColor, gameOver, handleMove]);
+    }, [board, gameState, gameOver, handleMove]);
 
-    // 关闭模态框，重置游戏状态并显示颜色选择页面
     const handleCloseModal = () => {
         setGameOver(false);
         setWinner(null);
         setBoard(Array(15).fill(null).map(() => Array(15).fill(null)));
-        setPlayerColor(null);  // 重置玩家颜色，显示选择页面
-        setCurrentPlayer(null);
-        socketRef.current.emit("resetGame");  // 通知后端重置游戏
+        setGameState({
+            currentPlayer: null,
+            playerColor: null,
+            canPlayerMove: false,
+        });
+        socketRef.current.emit("resetGame");
     };
 
     const handleColorSelection = (color) => {
-        setPlayerColor(color);
-        if (color === "black") {
-            // 玩家选择黑子，自己先下
-            setCurrentPlayer("black");
-        } else if (color === "white") {
-            // 玩家选择白子，AI先下，设置玩家为黑子
-            setCurrentPlayer("white");
+        setGameState({
+            currentPlayer: "black",
+            playerColor: color,
+            canPlayerMove: color === "black", // 初始设置
+        });
+
+        if (color === "white") {
             socketRef.current.emit("aiFirstMove");
         }
     };
@@ -141,7 +148,7 @@ const Game = React.memo(() => {
         );
     };
 
-    if (!playerColor) {
+    if (!gameState.playerColor) {
         return (
             <div className="gomoku-game-container">
                 <h2>Select your color</h2>
@@ -169,12 +176,12 @@ const Game = React.memo(() => {
                     <h3>Winner: {winner}</h3>
                 </>
             ) : (
-                <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>
+                <h3>Current Player: {gameState.canPlayerMove ? "You" : "Opponent"}</h3>
             )}
             {renderBoard()}
             {gameOver && <WinnerModal
                 winner={winner}
-                playerColor={playerColor}
+                playerColor={gameState.playerColor}
                 onClose={handleCloseModal}
             />}
         </div>

@@ -3,7 +3,6 @@ import "animate.css"; // 引入 animate.css
 import Confetti from 'react-confetti'; // 撒花效果
 import "./WinnerModal.css"; // 引入 WinnerModal.css
 
-// 增加了 playerColor 参数
 const WinnerModal = ({ winner, playerColor, onClose }) => {
     const [userName, setUserName] = useState('');
     const [isWinner, setIsWinner] = useState(false);
@@ -24,7 +23,13 @@ const WinnerModal = ({ winner, playerColor, onClose }) => {
             <div className="winner_modal-content animate__animated animate__zoomIn"> {/* 使用 animate.css 的 zoomIn 动画 */}
                 <h2>Game Over</h2>
                 <p className="animate__animated animate__fadeInUp animate__delay-1s">
-                    {isWinner ? (
+                    {winner === "draw" ? ( // 检查平局状态
+                        <>
+                            🤝 <strong>It's a draw, {userName}!</strong> 🤝
+                            <br />
+                            The game ended in a draw!
+                        </>
+                    ) : isWinner ? (
                         <>
                             🎉 <strong>Kua wikitoria koe, {userName}!</strong> 🎉
                             <br />

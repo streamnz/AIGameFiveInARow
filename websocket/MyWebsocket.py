@@ -2,7 +2,8 @@ from flask_socketio import emit, disconnect
 import threading
 from source.gomoku import ai_move
 from source.AI import GomokuAI  # 导入 GomokuAI 类
-from utils.jwt_util import get_decoded_token_from_request, decode_jwt_token
+from utils.jwt_util import get_decoded_token_from_request
+import random
 
 # 15x15 棋盘尺寸
 board_size = 15
@@ -69,7 +70,8 @@ def handle_ai_first_move():
             ai_player_color = games[session_id]['ai_player_color']
 
             # 验证和执行移动
-            if 0 <= ai.currentI < len(board) and 0 <= ai.currentJ < len(board[0]) and board[ai.currentI][ai.currentJ] == '':
+            if 0 <= ai.currentI < len(board) and 0 <= ai.currentJ < len(board[0]) and board[ai.currentI][
+                ai.currentJ] == '':
                 board[ai.currentI][ai.currentJ] = ai_player_color
                 next_turn = 'black' if ai_player_color == 'white' else 'white'
                 games[session_id]['current_player'] = next_turn
@@ -138,24 +140,66 @@ def handle_player_move(data):
         disconnect()
 
 
+def find_random_valid_move(board, opponent_color):
+    # 获取棋盘大小
+    board_size = len(board)
+    # 存储所有空位
+    empty_positions = []
+    # 存储靠近对手棋子的空位
+    near_opponent_positions = []
+
+    # 遍历棋盘
+    for i in range(board_size):
+        for j in range(board_size):
+            # 假设空位用空字符串表示
+            if board[i][j] == "":
+                empty_positions.append((i, j))
+                # 检查是否靠近对手棋子
+                if is_near_opponent(board, i, j, opponent_color):
+                    near_opponent_positions.append((i, j))
+
+    # 优先选择靠近对手棋子的空位
+    if near_opponent_positions:
+        return random.choice(near_opponent_positions)
+    # 如果没有靠近对手的空位，则选择任意空位
+    if empty_positions:
+        return random.choice(empty_positions)
+    # 如果没有空位，返回None表示棋盘已满
+    return None, None
+
+
+def is_near_opponent(board, x, y, opponent_color):
+    # 检查四周是否有对手的棋子
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for dx, dy in directions:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < len(board) and 0 <= ny < len(board[0]) and board[nx][ny] == opponent_color:
+            return True
+    return False
+
+
 def my_ai_move(session_id, ai_player_color):
     if session_id not in games:
         print(f"[ERROR] No game found for session ID: {session_id}")
         return
     print(f"[INFO] AI is calculating its next move for session ID: {session_id}")
-
     try:
         board = games[session_id]['board']
         ai = games[session_id]['ai']
         ai.turn = 1
+
+        # 尝试AI计算的移动
         move_i, move_j = ai_move(ai)
+        print(f"[DEBUG] board[move_i][move_j]: ({board[move_i][move_j]})")
+        if board[move_i][move_j] != "":
+            print(f"[ERROR] AI chose an invalid move at ({move_i}, {move_j})")
+            raise ValueError("AI chose an occupied position")
+
         print(f"[DEBUG] AI (source) chose position: ({move_i}, {move_j})")
         ai.setState(move_i, move_j, ai.turn)
         ai.rollingHash ^= ai.zobristTable[move_i][move_j][0]
         ai.emptyCells -= 1
         ai.turn *= -1
-
-        # 验证和执行移动
         board[move_i][move_j] = ai_player_color
         next_turn = 'black' if ai_player_color == 'white' else 'white'
         games[session_id]['current_player'] = next_turn
@@ -171,6 +215,24 @@ def my_ai_move(session_id, ai_player_color):
 
     except Exception as e:
         print(f"[ERROR] Exception occurred during AI move calculation: {str(e)}")
+        opponent_color = 'black' if ai_player_color == 'white' else 'white'
+        move_i, move_j = find_random_valid_move(board, opponent_color)
+        print(f"[DEBUG] Random chose position: ({move_i}, {move_j})")
+        if move_i is not None and move_j is not None:
+            board[move_i][move_j] = ai_player_color
+            next_turn = 'black' if ai_player_color == 'white' else 'white'
+            games[session_id]['current_player'] = next_turn
+            print(f"[INFO] AI placed {ai_player_color} piece at random position ({move_i}, {move_j})")
+            if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
+                emit('updateBoard', {
+                    'board': games[session_id]['board'],
+                    'next_turn': next_turn
+                }, broadcast=True)
+                print(f"[INFO] Next turn: {next_turn}")
+        else:
+            print("[INFO] The game is a draw.")
+            # 可以在这里发送平局的通知给前端
+            emit('gameOver', {"winner": "draw"}, broadcast=True)
 
 
 # 检查胜赢条件
@@ -242,5 +304,3 @@ def handle_logout():
     if session_id in games:
         del games[session_id]  # 删除用户的游戏状态
         print(f"Game data cleared for session ID: {session_id}")
-
-
