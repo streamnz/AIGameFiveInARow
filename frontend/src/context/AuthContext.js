@@ -1,11 +1,10 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, {createContext, useState, useEffect, useCallback} from 'react';
 import apiClient from '../interceptor/axiosConfig';
-import { parseJwt } from "../component/jwt_util";
-
+import {parseJwt} from "../component/jwt_util";
 // 创建上下文
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loggedInUser, setLoggedInUser] = useState(null);
 
@@ -23,11 +22,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     // 登录成功时
-    const handleLoginSuccess = (userInfo) => {
+    const handleLoginSuccess = useCallback((userInfo) => {
         setLoggedInUser(userInfo);
-        localStorage.setItem('loggedInUser', JSON.stringify(userInfo));  // 存储登录信息到 localStorage
-        setIsModalOpen(false);  // 关闭登录模态框
-    };
+        localStorage.setItem('loggedInUser', JSON.stringify(userInfo));
+        setIsModalOpen(false);
+    }, []); // 空的依赖数组，确保函数只在初始化时创建一次
 
     // 登出功能 (包含原始的 handleLogout 逻辑)
     const handleLogout = async () => {
