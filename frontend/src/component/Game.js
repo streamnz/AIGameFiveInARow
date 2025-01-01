@@ -4,7 +4,6 @@ import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
 const GomokuCell = React.memo(({x, y, value, onClick}) => {
-    console.log("Rendering cell at", x, y);
     return (
         <div className="gomoku-cell" onClick={() => onClick(x, y)}>
             {value === "black" && <div className="gomoku-piece gomoku-piece-black"></div>}
@@ -19,15 +18,8 @@ const Game = React.memo(() => {
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null);
-    const [isWaitingForAI, setIsWaitingForAI] = useState(false); // 新增状态
     const socketRef = useRef(null);
 
-    const renderCount = useRef(0);
-
-    useEffect(() => {
-        renderCount.current += 1;
-        console.log("Game component rendered", renderCount.current, "times");
-    });
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
@@ -40,16 +32,11 @@ const Game = React.memo(() => {
         console.log("handleUpdateBoard next_turn", next_turn);
         setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
         setBoard(newBoard);
-
-        // 如果AI完成下棋，解除等待状态
-        if (next_turn === playerColor) {
-            setIsWaitingForAI(false);
-        }
     }, [playerColor]);
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
-        socketRef.current = io("http://127.0.0.1:5000", {
+        socketRef.current = io("https://aigame.streamnz.com", {
             query: {token: jwtToken},
         });
 
@@ -69,7 +56,7 @@ const Game = React.memo(() => {
             socketRef.current.off("updateBoard", handleUpdateBoard);
             socketRef.current.disconnect();
         };
-    }, [handleGameOver, handleUpdateBoard]);
+    }, []);
 
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
         if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
@@ -89,7 +76,6 @@ const Game = React.memo(() => {
             if (sendToServer) {
                 console.log("playerMove", {x, y, player});
                 socketRef.current.emit("playerMove", {x, y, player});
-                setIsWaitingForAI(true); // 玩家下棋后等待AI操作
             }
         } else {
             console.log("Invalid move!");
@@ -101,10 +87,6 @@ const Game = React.memo(() => {
             alert("Game is over!");
             return;
         }
-        if (isWaitingForAI) { // 检查是否等待AI
-            alert("It's not your turn! Waiting for AI to make a move.");
-            return;
-        }
         if (currentPlayer !== playerColor) {
             alert("It's not your turn! Please wait for the opponent.");
             return;
@@ -114,7 +96,7 @@ const Game = React.memo(() => {
         } else {
             alert("Invalid move");
         }
-    }, [board, currentPlayer, playerColor, gameOver, isWaitingForAI, handleMove]);
+    }, [board, currentPlayer, playerColor, gameOver, handleMove]);
 
     // 关闭模态框，重置游戏状态并显示颜色选择页面
     const handleCloseModal = () => {

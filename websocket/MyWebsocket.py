@@ -69,8 +69,7 @@ def handle_ai_first_move():
             ai_player_color = games[session_id]['ai_player_color']
 
             # 验证和执行移动
-            if 0 <= ai.currentI < len(board) and 0 <= ai.currentJ < len(board[0]) and board[ai.currentI][
-                ai.currentJ] == '':
+            if 0 <= ai.currentI < len(board) and 0 <= ai.currentJ < len(board[0]) and board[ai.currentI][ai.currentJ] == '':
                 board[ai.currentI][ai.currentJ] = ai_player_color
                 next_turn = 'black' if ai_player_color == 'white' else 'white'
                 games[session_id]['current_player'] = next_turn
@@ -157,21 +156,18 @@ def my_ai_move(session_id, ai_player_color):
         ai.turn *= -1
 
         # 验证和执行移动
-        if 0 <= move_i < len(board) and 0 <= move_j < len(board[0]) and board[move_i][move_j] == '':
-            board[move_i][move_j] = ai_player_color
-            next_turn = 'black' if ai_player_color == 'white' else 'white'
-            games[session_id]['current_player'] = next_turn
-            print(f"[INFO] AI placed {ai_player_color} piece at ({move_i}, {move_j})")
+        board[move_i][move_j] = ai_player_color
+        next_turn = 'black' if ai_player_color == 'white' else 'white'
+        games[session_id]['current_player'] = next_turn
+        print(f"[INFO] AI placed {ai_player_color} piece at ({move_i}, {move_j})")
 
-            # 检查获胜条件并更新棋盘
-            if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
-                emit('updateBoard', {
-                    'board': games[session_id]['board'],
-                    'next_turn': next_turn
-                }, broadcast=True)
-                print(f"[INFO] Next turn: {next_turn}")
-        else:
-            print(f"[ERROR] AI calculated an invalid move: ({move_i}, {move_j})")
+        # 检查获胜条件并更新棋盘
+        if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
+            emit('updateBoard', {
+                'board': games[session_id]['board'],
+                'next_turn': next_turn
+            }, broadcast=True)
+            print(f"[INFO] Next turn: {next_turn}")
 
     except Exception as e:
         print(f"[ERROR] Exception occurred during AI move calculation: {str(e)}")
