@@ -53,7 +53,7 @@ export const AuthProvider = ({children}) => {
                 }
             });
             console.log("logout successfully!", parseJwt(token));
-
+            window.location.href = '/';  // This will redirect to the home page
         } catch (error) {
             console.error("Logout failed:", error);
         }

@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import './LoginModal.css';
-//import axios from 'axios';
 import apiClient from '../interceptor/axiosConfig';
 
 

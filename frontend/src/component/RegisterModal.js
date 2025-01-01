@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import './Register.css';
-import { parseJwt } from "./jwt_util";
 import apiClient from '../interceptor/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
 
