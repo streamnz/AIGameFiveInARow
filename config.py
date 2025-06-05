@@ -68,6 +68,7 @@ class Config:
     # Flask Configuration
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    PORT = int(os.getenv('PORT', 5000))
 
     # Logging Configuration
     LOG_LEVEL = getattr(logging, os.getenv('LOG_LEVEL', 'DEBUG'))

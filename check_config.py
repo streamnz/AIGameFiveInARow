@@ -23,7 +23,8 @@ def check_config():
         'MYSQL_DB_KEY': '数据库密码加密密钥',
         'DEEPSEEK_API_KEY': 'DeepSeek API 密钥',
         'FLASK_SECRET_KEY': 'Flask 密钥',
-        'FLASK_DEBUG': 'Flask 调试模式'
+        'FLASK_DEBUG': 'Flask 调试模式',
+        'PORT': '应用服务端口'
     }
     
     print("\n📋 检查环境变量:")

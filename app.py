@@ -79,6 +79,5 @@ if __name__ == '__main__':
             print(f"Error creating database tables: {e}")
     
     # 启动应用
-    print("Starting Five-in-a-Row AI Game Server with DeepSeek AI...")
-    print("DeepSeek AI is ready for intelligent gameplay!")
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+
+    socketio.run(app, host='0.0.0.0', port=app.config['PORT'], debug=True)
