@@ -72,12 +72,5 @@ flask_app = create_app()
 
 if __name__ == '__main__':
     app = flask_app
-    # 创建数据库表（如果不存在）
-    with app.app_context():
-        try:
-            db.create_all()
-            print("Database tables created successfully")
-        except Exception as e:
-            print(f"Error creating database tables: {e}")
     # 启动应用
     socketio.run(app, host='0.0.0.0', port=app.config['PORT'], debug=True)
