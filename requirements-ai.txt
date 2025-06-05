@@ -1,9 +1,0 @@
-# 数据处理
-pandas==1.4.1
-matplotlib==3.5.1
-
-# AI 依赖
-pygame~=2.6.0
-torch~=2.2.2
-gradio~=3.33.1
-numpy~=1.26.4
