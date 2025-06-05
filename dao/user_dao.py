@@ -1,4 +1,4 @@
-from app import db  # 保持不变，因为 `db` 在 `app.py` 中已全局定义
+from models import db  # 修复循环引用，只导入db实例
 from model.user import User
 
 
