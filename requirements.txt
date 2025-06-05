@@ -1,56 +1,29 @@
-alembic==1.16.1
-bidict==0.23.1
-cffi==1.17.1
-click==8.1.3
-contourpy==1.3.2
-cryptography==43.0.3
-cycler==0.12.1
-dnspython==2.7.0
-email-validator==1.1.3
-filelock==3.18.0
-Flask==2.2.5
-flask-cors==6.0.0
-Flask-JWT-Extended==4.7.1
-Flask-Migrate==3.1.0
-Flask-SocketIO==5.5.1
-Flask-SQLAlchemy==2.5.1
-Flask-WTF==0.15.1
-fonttools==4.58.1
-fsspec==2025.5.1
-gevent==25.5.1
-greenlet==3.2.2
-gunicorn==23.0.0
-h11==0.16.0
-idna==3.10
-itsdangerous==2.1.2
-Jinja2==3.1.6
-kiwisolver==1.4.8
-Mako==1.3.10
-MarkupSafe==3.0.2
-matplotlib==3.10.3
-mpmath==1.3.0
-mysql-connector-python==9.0.0
-networkx==3.5
-numpy==2.2.6
-packaging==25.0
-pillow==11.2.1
-pycparser==2.22
-PyJWT==2.10.1
-PyMySQL==1.1.1
-pyparsing==3.2.3
-python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
-python-engineio==4.12.2
-python-socketio==5.13.0
-setuptools==80.9.0
-simple-websocket==1.1.0
-six==1.17.0
-SQLAlchemy==1.4.54
-sympy==1.14.0
-torch==2.7.1
-typing_extensions==4.14.0
-Werkzeug==3.1.3
-wsproto==1.2.0
-WTForms==3.0.0
-zope.event==5.0
-zope.interface==7.2
+# Flask 核心框架
+Flask==3.0.2
+Flask-CORS==4.0.0
+Flask-SocketIO==5.3.6
+Flask-SQLAlchemy==3.1.1
+Flask-JWT-Extended==4.6.0
+Flask-Migrate==4.0.5
+
+# 数据库
+PyMySQL==1.1.0
+
+# 加密和安全
+cryptography==41.0.7
+python-dotenv==1.0.1
+Werkzeug==3.0.1
+
+# HTTP 请求
+requests==2.31.0
+
+# WebSocket 和异步
+gevent==23.9.1
+gevent-websocket==0.10.1
+
+# 工具库
+python-dateutil==2.8.2
+six==1.16.0
+
+# 开发工具
+gunicorn==21.2.0

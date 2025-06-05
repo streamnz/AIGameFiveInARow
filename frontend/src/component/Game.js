@@ -26,7 +26,7 @@ const Game = React.memo(() => {
     useEffect(() => {
         renderCount.current += 1;
         console.log("Game component rendered", renderCount.current, "times");
-    });
+    }, []);
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
@@ -43,7 +43,7 @@ const Game = React.memo(() => {
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
-        socketRef.current = io("https://aiGame.streamnz.com", {
+        socketRef.current = io("http://localhost:5050", {
             query: {token: jwtToken},
         });
 

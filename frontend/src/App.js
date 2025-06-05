@@ -26,7 +26,7 @@ function App() {
             // 如果用户未登录且试图访问受保护的 /game 页面时，重定向到首页
             navigate('/');
         }
-    }, [navigate, location.pathname, handleLoginSuccess]);
+    }, [location.pathname, navigate]);
 
     const handleGetStarted = () => {
         if (loggedInUser) {

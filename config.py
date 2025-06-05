@@ -15,13 +15,16 @@ def validate_env_vars():
         'MYSQL_DATABASE',
         'MYSQL_USER',
         'MYSQL_ENCRYPTED_PASSWORD',
-        'MYSQL_DB_KEY'
+        'MYSQL_DB_KEY',
+        'DEEPSEEK_API_KEY'
     ]
     
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
         print(f"错误: 以下环境变量未设置: {', '.join(missing_vars)}")
         print("请确保 .env 文件包含所有必要的配置项")
+        if 'DEEPSEEK_API_KEY' in missing_vars:
+            print("🔑 DeepSeek API 密钥是必需的，请访问 https://platform.deepseek.com 获取")
         sys.exit(1)
 
 class Config:
@@ -35,6 +38,9 @@ class Config:
     MYSQL_USER = os.getenv('MYSQL_USER')
     MYSQL_ENCRYPTED_PASSWORD = os.getenv('MYSQL_ENCRYPTED_PASSWORD')
     MYSQL_DB_KEY = os.getenv('MYSQL_DB_KEY')
+    
+    # DeepSeek API Configuration
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
     @staticmethod
     def decrypt_password(encrypted_password, key):

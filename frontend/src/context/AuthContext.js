@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import apiClient from '../interceptor/axiosConfig';
 import { parseJwt } from "../component/jwt_util";
 
@@ -15,60 +15,53 @@ export const AuthProvider = ({ children }) => {
         if (storedUser) {
             setLoggedInUser(JSON.parse(storedUser));
         }
-    }, []);
+    }, []); // 添加空依赖数组，只在组件挂载时执行一次
 
     // 处理401错误时显示登录模态框
-    const handle401Error = () => {
+    const handle401Error = useCallback(() => {
         setIsModalOpen(true);
-    };
+    }, []);
 
     // 登录成功时
-    const handleLoginSuccess = (userInfo) => {
+    const handleLoginSuccess = useCallback((userInfo) => {
         setLoggedInUser(userInfo);
         localStorage.setItem('loggedInUser', JSON.stringify(userInfo));  // 存储登录信息到 localStorage
         setIsModalOpen(false);  // 关闭登录模态框
-    };
+    }, []);
 
-    // 登出功能 (包含原始的 handleLogout 逻辑)
-    const handleLogout = async () => {
+    // 登出功能
+    const handleLogout = useCallback(async () => {
         try {
-            // 从 localStorage 获取 JWT token
             const token = localStorage.getItem('jwtToken');
-
-            // 如果 token 不存在，直接清除用户名信息
             if (!token) {
-                setIsModalOpen(true);  // 触发登录模态框
+                setIsModalOpen(true);
                 return;
             }
 
-            // 清空 localStorage 中的用户信息
-            setLoggedInUser(null);  // 清除当前登录用户状态
+            setLoggedInUser(null);
             localStorage.removeItem('jwtToken');
             localStorage.removeItem('username');
             localStorage.removeItem('loggedInUser');
 
-            // 调用后端的登出接口，设置 Authorization 请求头
             await apiClient.post('/user/logout', {}, {
                 headers: {
-                    'Authorization': `Bearer ${token}`  // 在请求头中设置 token
+                    'Authorization': `Bearer ${token}`
                 }
             });
             console.log("logout successfully!", parseJwt(token));
-
         } catch (error) {
             console.error("Logout failed:", error);
         }
-    };
+    }, []);
 
     // 注册成功时
-    const handleRegisterSuccess = (token) => {
+    const handleRegisterSuccess = useCallback((token) => {
         localStorage.setItem('jwtToken', token);
-        // 解析 JWT token 获取用户信息
         const newUserInfo = parseJwt(token);
         setLoggedInUser(newUserInfo);
-        localStorage.setItem('loggedInUser', JSON.stringify(newUserInfo));  // 注册成功后存储用户信息
-        setIsModalOpen(false);  // 关闭模态框
-    };
+        localStorage.setItem('loggedInUser', JSON.stringify(newUserInfo));
+        setIsModalOpen(false);
+    }, []);
 
     return (
         <AuthContext.Provider value={{
@@ -76,7 +69,7 @@ export const AuthProvider = ({ children }) => {
             setIsModalOpen,
             handle401Error,
             handleLoginSuccess,
-            handleLogout,  // 通过 AuthContext 提供 handleLogout
+            handleLogout,
             handleRegisterSuccess,
             loggedInUser
         }}>
