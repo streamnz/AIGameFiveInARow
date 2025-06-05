@@ -67,9 +67,11 @@ socketio.on_event('playerMove', handle_player_move)
 socketio.on_event('resetGame', handle_reset_game)
 socketio.on_event('logout', handle_logout)
 
+# 让 gunicorn 能 import 到 Flask 实例和 socketio 实例
+flask_app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    
+    app = flask_app
     # 创建数据库表（如果不存在）
     with app.app_context():
         try:
@@ -77,7 +79,5 @@ if __name__ == '__main__':
             print("Database tables created successfully")
         except Exception as e:
             print(f"Error creating database tables: {e}")
-    
     # 启动应用
-
     socketio.run(app, host='0.0.0.0', port=app.config['PORT'], debug=True)
