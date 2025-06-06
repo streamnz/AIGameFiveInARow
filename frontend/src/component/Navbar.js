@@ -8,7 +8,7 @@ function Navbar({ onLoginClick, onRegisterClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <h2>StreamNZ</h2>
+                <h2>CryptoChess</h2>
             </div>
 
             <div className="navbar-right">

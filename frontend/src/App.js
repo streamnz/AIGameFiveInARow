@@ -4,6 +4,7 @@ import {BrowserRouter as Router, Route, Routes, useNavigate, useLocation} from '
 import LoginModal from './component/LoginModal';
 import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
+import LandingPage from './component/LandingPage';
 import {parseJwt} from './component/jwt_util';
 import Game from './component/Game';
 import {AuthContext, AuthProvider} from './context/AuthContext';
@@ -53,17 +54,10 @@ function App() {
                     exact
                     path="/"
                     element={
-                        <div>
-                            <header className="App-header">
-                                <div className="container">
-                                    <h1>Kia Ora, Welcome to Stream NZ!</h1>
-                                    <h2>Beat AI Player to earn ETH!</h2>
-
-                                    {/* Start Game按钮 */}
-                                    <button className="start-btn" onClick={handleGetStarted}>Start Game</button>
-                                </div>
-                            </header>
-                        </div>
+                        <LandingPage 
+                            onGetStarted={handleGetStarted}
+                            loggedInUser={loggedInUser}
+                        />
                     }
                 />
 

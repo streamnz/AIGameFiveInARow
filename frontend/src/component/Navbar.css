@@ -1,70 +1,163 @@
-/* Navbar容器 */
+/* 导航栏容器 */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2d2d2d;  /* 根据背景图片，选择深灰色 */
-  padding: 15px 20px;  /* 调整padding，缩小navbar的高度 */
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 32px;
   color: white;
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 10;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);  /* 高级感的阴影效果 */
+  z-index: 1000;
+  transition: all 0.3s ease;
 }
 
-/* 左侧 StreamNZ 标题 */
+/* 左侧品牌标题 */
 .navbar-left h2 {
   margin: 0;
-  font-size: 26px;  /* 调整标题字体大小 */
-  font-weight: bold;
-  color: #f0f0f0;  /* 亮色文字，更醒目 */
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* 右侧按钮容器 */
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 30px;  /* 增加按钮之间的间距 */
-  padding-right: 30px;  /* 调整右侧padding */
+  gap: 16px;
 }
 
-/* 登录和注册按钮，以及通用的按钮样式 */
+/* 用户信息显示 */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+/* 认证按钮容器 */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 通用按钮样式 */
 .navbar-btn {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 15px;  /* 调整padding，使按钮更紧凑 */
-  background-color: #ff6347;  /* 使用亮眼的颜色让按钮突出 */
-  color: white;
+  padding: 8px 16px;
   border: none;
-  border-radius: 6px;  /* 圆角设计，更现代 */
-  font-size: 14px;  /* 调整字体大小 */
-  font-weight: bold;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;  /* 增加过渡效果 */
-  width: 100px;  /* 缩小按钮宽度 */
+  transition: all 0.3s ease;
+  text-decoration: none;
+  outline: none;
 }
 
-/* 鼠标悬停效果 */
-.navbar-btn:hover {
-  background-color: #ff4500;
-  transform: translateY(-2px);  /* 悬停时微微上移，增加交互感 */
+/* 登录按钮 */
+.login-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* 注册按钮 */
+.register-btn {
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.register-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
 /* 设置按钮 */
 .settings-btn {
-  background-color: #d9534f;  /* 绿色背景，表示设置功能 */
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateY(-1px);
 }
 
 /* 登出按钮 */
 .logout-btn {
-  background-color: #d9534f;  /* 红色背景，表示登出 */
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* 用户信息显示 */
-.user-info span {
-  font-size: 14px;
-  color: #f0f0f0;
-  margin-right: 10px;
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 20px;
+  }
+  
+  .navbar-left h2 {
+    font-size: 1.25rem;
+  }
+  
+  .navbar-right {
+    gap: 12px;
+  }
+  
+  .navbar-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .user-info span {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 10px 16px;
+  }
+  
+  .auth-buttons {
+    gap: 8px;
+  }
+  
+  .user-info {
+    gap: 8px;
+  }
+  
+  .user-info span {
+    display: none; /* 在小屏幕上隐藏欢迎文字 */
+  }
 }
