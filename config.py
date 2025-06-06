@@ -19,6 +19,14 @@ def validate_env_vars():
         'DEEPSEEK_API_KEY'
     ]
     
+    # AWS SES 是可选的，但如果要使用邮箱验证功能则需要设置
+    optional_aws_vars = [
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+        'AWS_REGION',
+        'SES_FROM_EMAIL'
+    ]
+    
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
         print(f"错误: 以下环境变量未设置: {', '.join(missing_vars)}")
@@ -26,6 +34,12 @@ def validate_env_vars():
         if 'DEEPSEEK_API_KEY' in missing_vars:
             print("🔑 DeepSeek API 密钥是必需的，请访问 https://platform.deepseek.com 获取")
         sys.exit(1)
+    
+    # 检查AWS配置
+    missing_aws_vars = [var for var in optional_aws_vars if not os.getenv(var)]
+    if missing_aws_vars:
+        print(f"⚠️  警告: 以下AWS SES环境变量未设置: {', '.join(missing_aws_vars)}")
+        print("如果需要使用邮箱验证功能，请配置AWS SES相关环境变量")
 
 class Config:
     # 验证环境变量
@@ -41,6 +55,16 @@ class Config:
     
     # DeepSeek API Configuration
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    
+    # AWS SES Configuration
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+    SES_FROM_EMAIL = os.getenv('SES_FROM_EMAIL')
+    
+    # Email Verification Configuration
+    VERIFICATION_CODE_EXPIRY = int(os.getenv('VERIFICATION_CODE_EXPIRY', 600))  # 10 minutes
+    EMAIL_VERIFICATION_ENABLED = bool(os.getenv('EMAIL_VERIFICATION_ENABLED', 'True').lower() == 'true')
 
     @staticmethod
     def decrypt_password(encrypted_password, key):

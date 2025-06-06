@@ -23,7 +23,7 @@ const WinnerModal = ({ winner, playerColor, onClose }) => {
             {isWinner && <Confetti />} {/* 只在获胜时撒花 */}
             <div className="winner_modal-content animate__animated animate__zoomIn"> {/* 使用 animate.css 的 zoomIn 动画 */}
                 <h2>Game Over</h2>
-                <p className="animate__animated animate__fadeInUp animate__delay-1s">
+                <p className={`winner-message animate__animated animate__fadeInUp animate__delay-1s ${isWinner ? 'winner' : 'loser'}`}>
                     {isWinner ? (
                         <>
                             🎉 <strong>Kua wikitoria koe, {userName}!</strong> 🎉

@@ -1,21 +1,31 @@
 from dao.user_dao import UserDAO
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 
 
 class UserService:
     def __init__(self):
         self.user_dao = UserDAO()
 
+    def get_user_by_email(self, email):
+        """
+        Get user by email address.
+        """
+        return self.user_dao.get_user_by_email(email)
+
     def register_user(self, username, password, email):
         """
         Register a new user.
         """
-        existing_user = self.user_dao.get_user_by_email(email)
-        if existing_user:
+        if self.user_dao.get_user_by_username(username):
+            return {"status": "error", "message": "Username already exists."}
+        if self.user_dao.get_user_by_email(email):
             return {"status": "error", "message": "Email already exists."}
-
-        user = self.user_dao.add_user(username, password, email)
-        return {"status": "success", "message": "User registered successfully.", "user": user}
+        try:
+            user = self.user_dao.add_user(username, password, email)
+            return {"status": "success", "message": "User registered successfully.", "user": user}
+        except IntegrityError:
+            return {"status": "error", "message": "Username or email already exists."}
 
     def login_user(self, username, password):
         """

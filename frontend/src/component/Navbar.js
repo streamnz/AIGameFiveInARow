@@ -1,9 +1,17 @@
 import React, { useContext } from 'react';
 import './Navbar.css';
 import { AuthContext } from '../context/AuthContext';  // 引入 AuthContext
+import { useNavigate } from 'react-router-dom';
 
 function Navbar({ onLoginClick, onRegisterClick }) {
     const { loggedInUser, handleLogout } = useContext(AuthContext);  // 从 AuthContext 获取用户信息和登出函数
+    const navigate = useNavigate();
+
+    // 封装登出并跳转首页
+    const handleLogoutAndRedirect = async () => {
+        await handleLogout();
+        navigate('/');
+    };
 
     return (
         <div className="navbar">
@@ -17,13 +25,13 @@ function Navbar({ onLoginClick, onRegisterClick }) {
                     <div className="user-info">
                         <span>Kia Ora, {loggedInUser.username}!</span>
                         <button className="navbar-btn settings-btn">Settings</button>
-                        <button className="navbar-btn logout-btn" onClick={handleLogout}>Logout</button>
+                        <button className="navbar-btn logout-btn" onClick={handleLogoutAndRedirect}>Logout</button>
                     </div>
                 ) : (
                     // 如果用户未登录，显示 Login 和 Register
                     <div className="auth-buttons">
-                        <button className="navbar-btn login-btn" onClick={onLoginClick}>Login</button>
-                        <button className="navbar-btn register-btn" onClick={onRegisterClick}>Register</button>
+                        <button className="navbar-btn navbar-login-btn" onClick={onLoginClick}>Login</button>
+                        <button className="navbar-btn navbar-register-btn" onClick={onRegisterClick}>Register</button>
                     </div>
                 )}
             </div>

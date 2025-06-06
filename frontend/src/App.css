@@ -22,8 +22,14 @@ body, html {
 }
 
 /* 为固定导航栏添加顶部间距 */
-.App > * {
-    padding-top: 80px;
+.App > .landing-page,
+.App > .gomoku-game-container {
+    padding-top: 72px;
+}
+
+/* 确保导航栏不影响布局 */
+.App {
+    padding-top: 0;
 }
 
 /* 旧的容器样式（保留以备后用） */

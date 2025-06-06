@@ -3,79 +3,305 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    background-color: #282c34;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: white;
+    padding: 20px;
+    padding-top: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+}
+
+.gomoku-game-container h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
+}
+
+.gomoku-game-container h3 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 30px;
+    color: #cbd5e1;
+    text-align: center;
 }
 
 .gomoku-game-board {
-    display: flex;
-    flex-direction: column;
-    width: 600px;
-    height: 600px;
-    background-color: #f5deb3;
-    border: 2px solid #8b4513;
-    background-image:
-        linear-gradient(to right, black 1px, transparent 1px),
-        linear-gradient(to bottom, black 1px, transparent 1px);
-    background-size: 40px 40px;
-}
-
-.gomoku-row {
-    display: flex;
-    flex-direction: row;
-}
-
-.gomoku-cell {
-    width: 40px;
-    height: 40px;
     position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 630px;
+    height: 630px;
+    background: linear-gradient(135deg, #d4a574 0%, #c8956d 100%);
+    border-radius: 8px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    padding: 21px;
+    cursor: crosshair;
+    user-select: none;
+}
+
+.board-grid-lines {
+    position: absolute;
+    top: 21px;
+    left: 21px;
+    right: 21px;
+    bottom: 21px;
+    pointer-events: none;
+}
+
+.horizontal-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #333;
+    opacity: 0.8;
+}
+
+.vertical-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: #333;
+    opacity: 0.8;
+}
+
+.star-point {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #333;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.pieces-layer {
+    position: absolute;
+    top: 21px;
+    left: 21px;
+    right: 21px;
+    bottom: 21px;
+    pointer-events: none;
 }
 
 .gomoku-piece {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
     position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     transform: translate(-50%, -50%);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    pointer-events: none;
 }
 
 .gomoku-piece-black {
-    background-color: black;
-    z-index: 10; /* 提高 z-index，确保黑子显示在棋盘上方 */
+    background: radial-gradient(circle at 35% 35%, #4a4a4a 0%, #1a1a1a 50%, #000000 100%);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.6),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.1);
+    animation: piecePlace 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .gomoku-piece-white {
-    background-color: white;
-    z-index: 10; /* 提高 z-index，确保白子显示在棋盘上方 */
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0f0f0 50%, #d0d0d0 100%);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.3),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.8);
+    animation: piecePlace 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 为选择按钮设计的样式 */
+.gomoku-piece-preview {
+    opacity: 0.5;
+    animation: none;
+    transform: translate(-50%, -50%) scale(0.9);
+}
+
+.gomoku-piece-preview.gomoku-piece-black {
+    background: radial-gradient(circle at 35% 35%, #4a4a4a 0%, #1a1a1a 50%, #000000 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.gomoku-piece-preview.gomoku-piece-white {
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0f0f0 50%, #d0d0d0 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes piecePlace {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(90deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
 .gomoku-player-select-white-black {
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    border: none;
-    border-radius: 25px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
     color: white;
+    border: none;
+    padding: 16px 32px;
     font-size: 18px;
-    padding: 15px 30px;
+    font-weight: 600;
+    border-radius: 12px;
     cursor: pointer;
+    margin: 10px;
     transition: all 0.3s ease;
-    margin: 10px auto;
-    width: 300px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    min-width: 180px;
 }
 
 .gomoku-player-select-white-black:hover {
-    background: linear-gradient(135deg, #ff512f, #dd2476);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-    transform: scale(1.05);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
 }
 
 .gomoku-player-select-white-black:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.game-info {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.game-info h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #fbbf24;
+}
+
+.current-player-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(251, 191, 36, 0.1);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    margin-top: 10px;
+}
+
+.current-player-indicator .piece-preview {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.current-player-indicator .piece-preview.black {
+    background: radial-gradient(circle at 30% 30%, #374151, #111827, #000000);
+    border: 1px solid #374151;
+}
+
+.current-player-indicator .piece-preview.white {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #f3f4f6, #e5e7eb);
+    border: 1px solid #d1d5db;
+}
+
+@media (max-width: 768px) {
+    .gomoku-game-board {
+        width: 90vw;
+        height: 90vw;
+        max-width: 500px;
+        max-height: 500px;
+        padding: 15px;
+    }
+    
+    .board-grid-lines {
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+    }
+    
+    .pieces-layer {
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+    }
+    
+    .gomoku-piece {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .star-point {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gomoku-game-container h2 {
+        font-size: 28px;
+    }
+    
+    .gomoku-game-container h3 {
+        font-size: 16px;
+    }
+    
+    .gomoku-piece {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .gomoku-player-select-white-black {
+        padding: 12px 24px;
+        font-size: 16px;
+        min-width: 150px;
+    }
+}
+
+.game-over .gomoku-game-board {
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.winning-piece {
+    animation: winningGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes winningGlow {
+    0% {
+        box-shadow: 
+            0 4px 8px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(251, 191, 36, 0.6);
+    }
+    100% {
+        box-shadow: 
+            0 4px 8px rgba(0, 0, 0, 0.4),
+            0 0 30px rgba(251, 191, 36, 1);
+    }
+}
+
+.winner-text {
+    color: #f59e0b;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
 }

@@ -1,110 +1,269 @@
+/* 登录弹窗遮罩层 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7); /* 加深背景遮罩 */
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85));
+  backdrop-filter: blur(12px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* 确保在最前面 */
+  z-index: 1000;
+  animation: modalFadeIn 0.3s ease-out;
 }
 
+@keyframes modalFadeIn {
+  from { 
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to { 
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* 登录弹窗主体 */
 .modal-content {
-  background: white;
-  padding: 40px; /* 增加内容的内边距 */
-  border-radius: 10px; /* 轻微圆角 */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* 增加阴影以获得浮动效果 */
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.92));
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  margin: 20px;
   position: relative;
-  width: 350px; /* 稍微扩大宽度 */
-  max-width: 90%; /* 确保在小屏幕设备上也能显示合适 */
-  text-align: center; /* 文本居中 */
+  box-shadow: 
+    0 20px 40px rgba(139, 92, 246, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 关闭按钮 */
 .close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 20px;  /* 调整按钮的宽度 */
-  height: 20px; /* 调整按钮的高度 */
-  background-color: transparent;  /* 设置为透明背景 */
-  border: none;  /* 移除边框 */
-  font-size: 16px;  /* 调整字体大小 */
-  color: #ff4081;  /* 使用更柔和的主题颜色 */
-  cursor: pointer;  /* 鼠标悬停时显示为可点击 */
-  padding: 0;  /* 移除按钮的内边距 */
-  line-height: 20px;  /* 确保按钮图标垂直居中 */
-  transition: color 0.3s ease;  /* 添加平滑的颜色过渡效果 */
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  z-index: 10;
 }
 
 .close-btn:hover {
-  color: #e91e63;  /* 鼠标悬停时颜色变深 */
+  background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
 }
 
-h3 {
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-  color: #333; /* 深色标题 */
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1); /* 轻微阴影效果 */
+.close-btn:active {
+  transform: scale(0.95) rotate(90deg);
 }
 
-input {
+/* 标题 */
+.modal-content h2, .modal-content h3 {
+  text-align: center;
+  margin: 0 0 32px 0;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+/* 表单容器 */
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-content form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 标签样式 */
+.modal-content label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  letter-spacing: 0.025em;
+}
+
+/* 输入框样式 */
+.modal-content input {
   width: 100%;
-  padding: 12px;
-  margin: 15px 0;
-  border: 1px solid #ccc; /* 增加边框以增强对比度 */
-  border-radius: 6px; /* 圆角输入框 */
-  font-size: 1rem;
+  padding: 14px 18px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 16px;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #e5e7eb, #d1d5db) border-box;
+  transition: all 0.3s ease;
+  outline: none;
   box-sizing: border-box;
-  transition: border-color 0.3s ease;
+  color: #374151;
+  margin: 0;
 }
 
-input:focus {
-  border-color: #007bff; /* 输入框聚焦时的边框颜色 */
-  outline: none; /* 移除默认聚焦边框 */
+.modal-content input:focus {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #8B5CF6, #06B6D4) border-box;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
 }
 
-button {
+.modal-content input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* 错误信息 */
+.modal-content .error-message,
+.modal-content p[style*='color: red'] {
+  color: #ef4444 !important;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 8px 0 0 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  text-align: left;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* 登录按钮 */
+.modal-content button[type="submit"],
+.modal-content button:not(.close-btn) {
   width: 100%;
-  padding: 12px;
-  background-color: #007bff;
-  color: white;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  color: #fff;
   border: none;
-  border-radius: 6px; /* 稍微加大按钮的圆角 */
-  font-size: 1.1rem; /* 稍微增大字体 */
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+  margin: 8px 0 0 0;
+  position: relative;
+  overflow: hidden;
 }
 
-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.03); /* 悬停时轻微放大按钮 */
+.modal-content button[type="submit"]::before,
+.modal-content button:not(.close-btn)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
-p {
-  color: red;
-  margin-top: 10px;
-  font-size: 0.9rem;
-  text-align: left; /* 错误信息左对齐 */
+.modal-content button[type="submit"]:hover::before,
+.modal-content button:not(.close-btn):hover::before {
+  left: 100%;
 }
 
+.modal-content button[type="submit"]:hover,
+.modal-content button:not(.close-btn):hover {
+  background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
 
-/* 添加加载动画样式 */
+.modal-content button[type="submit"]:active,
+.modal-content button:not(.close-btn):active {
+  transform: translateY(0);
+}
+
+.modal-content button:disabled {
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 加载状态 */
 .loading-spinner-login {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-top: 3px solid #8B5CF6;
   border-radius: 50%;
-  border-top-color: #007bff; /* 加载动画的主色调 */
-  animation: spin 1s ease-in-out infinite; /* 定义旋转动画 */
-  margin: 20px auto; /* 居中对齐 */
+  margin: 20px auto;
+  animation: spin 1s linear infinite;
 }
 
-/* 定义旋转动画的关键帧 */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 32px 24px;
+    margin: 16px;
+    border-radius: 16px;
+  }
+  
+  .modal-content h2, .modal-content h3 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .modal-content form {
+    gap: 16px;
+  }
+  
+  .close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
   }
 }

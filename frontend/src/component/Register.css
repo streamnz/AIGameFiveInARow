@@ -1,117 +1,472 @@
-/* 模态框容器样式 */
+/* 注册弹窗遮罩层 */
 .register-modal {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    max-width: 400px; /* 设置与Login相似的最大宽度 */
-    width: 100%;
-}
-
-/* 标题样式 */
-.register-content h2 {
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-/* 表单组样式 */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: none; /* 隐藏标签，与Login表单一致 */
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 16px;  /* 字体大小和login一致 */
-}
-
-/* 错误提示信息样式 */
-.error {
-    color: red;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-/* 按钮容器 */
-.button-group {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85));
+    backdrop-filter: blur(12px);
     display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: modalFadeIn 0.3s ease-out;
 }
 
-/* 注册和取消按钮通用样式 */
-.register-btn, .cancel-btn {
-    padding: 10px 15px; /* 调整按钮的大小 */
+@keyframes modalFadeIn {
+    from { 
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to { 
+        opacity: 1;
+        backdrop-filter: blur(12px);
+    }
+}
+
+/* 注册弹窗主体 */
+.register-content {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.92));
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 480px;
+    margin: 20px;
+    position: relative;
+    box-shadow: 
+        0 20px 40px rgba(139, 92, 246, 0.15),
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 关闭按钮 */
+.register-content .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
     border: none;
-    border-radius: 4px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
     cursor: pointer;
-    width: 48%; /* 设置两个按钮宽度一致 */
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    z-index: 10;
+}
+
+.register-content .close-btn:hover {
+    background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.register-content .close-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* 标题 */
+.register-content h2, .register-content h3 {
+    text-align: center;
+    margin: 0 0 32px 0;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+/* 表单容器 */
+.register-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    text-align: left;
+    letter-spacing: 0.025em;
+}
+
+/* 输入框样式 */
+.register-content input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid transparent;
+    border-radius: 12px;
     font-size: 16px;
-    transition: background-color 0.3s ease;  /* 添加背景色渐变效果 */
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #e5e7eb, #d1d5db) border-box;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+    color: #374151;
+    margin: 0;
 }
 
-/* 注册按钮样式 */
-.register-btn {
-    background-color: #007bff; /* 默认颜色 */
-    color: white;
+.register-content input:focus {
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #8B5CF6, #06B6D4) border-box;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    transform: translateY(-1px);
 }
 
-/* 注册按钮悬停效果 */
-.register-btn:hover {
-    background-color: #0056b3; /* 悬停颜色 */
+.register-content input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
 }
 
-/* 取消按钮样式 */
-.cancel-btn {
-    background-color: #dc3545; /* 默认取消按钮颜色 */
-    color: white;
+/* 邮箱验证组合 */
+.email-group {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
 }
 
-/* 取消按钮悬停效果 */
-.cancel-btn:hover {
-    background-color: #c82333; /* 悬停颜色 */
+.email-group input {
+    flex: 1;
 }
 
-/* 禁用状态样式，注册和取消按钮 */
-.register-btn:disabled, .cancel-btn:disabled {
-    background-color: #ccc;
+.verify-btn {
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+    min-width: 120px;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.verify-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.verify-btn:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.verify-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
+
+.verify-btn:disabled {
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
     cursor: not-allowed;
+    transform: none;
 }
 
-/* 加载中的样式 */
+/* 验证步骤样式 */
+.verification-step {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.verification-header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05));
+    border-radius: 16px;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.email-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: emailBounce 2s ease-in-out infinite;
+}
+
+@keyframes emailBounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.verification-header h3 {
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    color: #374151;
+}
+
+.verification-header p {
+    margin: 0 0 8px 0;
+    color: #6b7280;
+    font-size: 16px;
+}
+
+.email-display {
+    font-weight: 600;
+    color: #8B5CF6;
+    font-size: 16px;
+    padding: 8px 16px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.verification-input {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 4px;
+}
+
+.verification-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.verify-code-btn {
+    flex: 1;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+.verify-code-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
+
+.verify-code-btn:disabled {
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 重发验证码区域 */
+.resend-section {
+    text-align: center;
+    padding: 16px;
+}
+
+.countdown-text {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 0;
+}
+
+.resend-btn {
+    background: none;
+    border: none;
+    color: #8B5CF6;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.resend-btn:hover {
+    color: #9333EA;
+}
+
+/* 步骤导航 */
+.step-navigation {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.back-btn {
+    background: none;
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    color: #8B5CF6;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(139, 92, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* 通用按钮样式 */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.register-btn, .cancel-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: none;
+}
+
+.register-btn {
+    background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+.register-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9333EA 0%, #0891B2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
+
+.cancel-btn {
+    background: #f8fafc;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+}
+
+.cancel-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+/* 错误信息 */
+.error {
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 8px 0 0 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 10px;
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* 加载状态 */
 .loading-spinner {
-    margin-right: 10px; /* 给加载中的按钮增加一个小的右边距 */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid #ffffff;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(139, 92, 246, 0.2);
+    border-top: 3px solid #8B5CF6;
     border-radius: 50%;
-    width: 16px;
-    height: 16px;
+    margin: 20px auto;
     animation: spin 1s linear infinite;
 }
 
-/* 加载旋转动画 */
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .register-content {
+        padding: 32px 24px;
+        margin: 16px;
+        border-radius: 16px;
+        max-width: 90%;
     }
-    100% {
-        transform: rotate(360deg);
+    
+    .register-content h2, .register-content h3 {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .form-group {
+        gap: 16px;
+    }
+    
+    .email-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .verify-btn {
+        min-width: auto;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-content {
+        padding: 28px 20px;
+        margin: 12px;
+    }
+    
+    .verification-header {
+        padding: 16px;
+    }
+    
+    .email-icon {
+        font-size: 36px;
+    }
+    
+    .verification-input {
+        font-size: 16px;
+        letter-spacing: 2px;
     }
 }

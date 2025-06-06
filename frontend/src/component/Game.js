@@ -3,23 +3,15 @@ import {io} from "socket.io-client";
 import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
 
-const GomokuCell = React.memo(({x, y, value, onClick}) => {
-    console.log("Rendering cell at", x, y);
-    return (
-        <div className="gomoku-cell" onClick={() => onClick(x, y)}>
-            {value === "black" && <div className="gomoku-piece gomoku-piece-black"></div>}
-            {value === "white" && <div className="gomoku-piece gomoku-piece-white"></div>}
-        </div>
-    );
-});
-
 const Game = React.memo(() => {
     const [board, setBoard] = useState(Array(15).fill(null).map(() => Array(15).fill(null)));
     const [currentPlayer, setCurrentPlayer] = useState("black");
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
     const [playerColor, setPlayerColor] = useState(null);
+    const [hoveredPosition, setHoveredPosition] = useState(null);
     const socketRef = useRef(null);
+    const boardRef = useRef(null);
 
     const renderCount = useRef(0);
 
@@ -90,23 +82,62 @@ const Game = React.memo(() => {
         }
     }, [board, gameOver]);
 
-    const handleCellClick = useCallback((x, y) => {
+    const handleBoardClick = useCallback((event) => {
         if (gameOver) {
             alert("Game is over!");
             return;
         }
-        console.log("currentPlayer and playerColor", currentPlayer, playerColor)
+        
         if (currentPlayer !== playerColor) {
             alert("It's not your turn! Please wait for the opponent.");
             return;
         }
 
-        if (board[x][y] === "" || board[x][y] === null) {
-            handleMove(x, y, currentPlayer);
-        } else {
-            alert("Invalid move");
+        const rect = boardRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // 计算最近的交叉点
+        const cellSize = rect.width / 14; // 14个格子，15个交叉点
+        const col = Math.round(x / cellSize);
+        const row = Math.round(y / cellSize);
+        
+        // 确保在有效范围内
+        if (row >= 0 && row < 15 && col >= 0 && col < 15) {
+            if (board[row][col] === "" || board[row][col] === null) {
+                handleMove(row, col, currentPlayer);
+            } else {
+                alert("Invalid move");
+            }
         }
     }, [board, currentPlayer, playerColor, gameOver, handleMove]);
+
+    const handleBoardMouseMove = useCallback((event) => {
+        if (gameOver || currentPlayer !== playerColor) {
+            setHoveredPosition(null);
+            return;
+        }
+
+        const rect = boardRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // 计算最近的交叉点
+        const cellSize = rect.width / 14;
+        const col = Math.round(x / cellSize);
+        const row = Math.round(y / cellSize);
+        
+        // 确保在有效范围内并且位置为空
+        if (row >= 0 && row < 15 && col >= 0 && col < 15 && !board[row][col]) {
+            setHoveredPosition({ row, col });
+        } else {
+            setHoveredPosition(null);
+        }
+    }, [board, currentPlayer, playerColor, gameOver]);
+
+    const handleBoardMouseLeave = useCallback(() => {
+        setHoveredPosition(null);
+    }, []);
 
     // 关闭模态框，重置游戏状态并显示颜色选择页面
     const handleCloseModal = () => {
@@ -133,20 +164,63 @@ const Game = React.memo(() => {
     const renderBoard = () => {
         console.log("Rendering the board");
         return (
-            <div className="gomoku-game-board">
-                {board.map((row, rowIndex) => (
-                    <div key={rowIndex} className="gomoku-row">
-                        {row.map((cell, colIndex) => (
-                            <GomokuCell
-                                key={`${rowIndex}-${colIndex}`}
-                                x={rowIndex}
-                                y={colIndex}
-                                value={cell}
-                                onClick={handleCellClick}
+            <div 
+                className="gomoku-game-board" 
+                ref={boardRef}
+                onClick={handleBoardClick}
+                onMouseMove={handleBoardMouseMove}
+                onMouseLeave={handleBoardMouseLeave}
+            >
+                <div className="board-grid-lines">
+                    {/* 绘制横线 */}
+                    {[...Array(15)].map((_, i) => (
+                        <div key={`h-${i}`} className="horizontal-line" style={{ top: `${(i / 14) * 100}%` }} />
+                    ))}
+                    {/* 绘制竖线 */}
+                    {[...Array(15)].map((_, i) => (
+                        <div key={`v-${i}`} className="vertical-line" style={{ left: `${(i / 14) * 100}%` }} />
+                    ))}
+                    {/* 绘制星位点 */}
+                    {[3, 7, 11].map(row => 
+                        [3, 7, 11].map(col => (
+                            <div 
+                                key={`star-${row}-${col}`} 
+                                className="star-point" 
+                                style={{ 
+                                    top: `${(row / 14) * 100}%`, 
+                                    left: `${(col / 14) * 100}%` 
+                                }} 
                             />
-                        ))}
-                    </div>
-                ))}
+                        ))
+                    )}
+                </div>
+                {/* 棋子层 */}
+                <div className="pieces-layer">
+                    {board.map((row, rowIndex) => 
+                        row.map((cell, colIndex) => 
+                            cell && (
+                                <div
+                                    key={`piece-${rowIndex}-${colIndex}`}
+                                    className={`gomoku-piece gomoku-piece-${cell}`}
+                                    style={{
+                                        top: `${(rowIndex / 14) * 100}%`,
+                                        left: `${(colIndex / 14) * 100}%`
+                                    }}
+                                />
+                            )
+                        )
+                    )}
+                    {/* 悬停预览 */}
+                    {hoveredPosition && (
+                        <div
+                            className={`gomoku-piece gomoku-piece-preview gomoku-piece-${playerColor}`}
+                            style={{
+                                top: `${(hoveredPosition.row / 14) * 100}%`,
+                                left: `${(hoveredPosition.col / 14) * 100}%`
+                            }}
+                        />
+                    )}
+                </div>
             </div>
         );
     };
@@ -176,7 +250,7 @@ const Game = React.memo(() => {
             <h2>Gomoku Game</h2>
             {gameOver ? (
                 <>
-                    <h3>Winner: {winner}</h3>
+                    <h3 className="winner-text">Winner: {winner}</h3>
                 </>
             ) : (
                 <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>

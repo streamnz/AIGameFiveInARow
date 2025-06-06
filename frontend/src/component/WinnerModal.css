@@ -43,3 +43,17 @@
 .winner_modal-content button:hover {
     background-color: #45a049;
 }
+
+.winner-message {
+    font-size: 18px;
+    margin: 20px 0;
+    color: #333;
+}
+
+.winner-message.winner {
+    color: #f59e0b;
+}
+
+.winner-message.loser {
+    color: #ef4444;
+}
