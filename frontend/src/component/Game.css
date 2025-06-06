@@ -305,3 +305,25 @@
     text-align: center;
     margin-bottom: 20px;
 }
+
+.dynamic-player-tip {
+    font-size: 20px;
+    font-weight: 500;
+    color: #cbd5e1;
+    text-align: center;
+    margin-bottom: 30px;
+    letter-spacing: 0.5px;
+}
+
+.dot-flash {
+    display: inline-block;
+    margin-left: 4px;
+    letter-spacing: 2px;
+    animation: dotFlash 1.2s infinite steps(3);
+}
+
+@keyframes dotFlash {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}

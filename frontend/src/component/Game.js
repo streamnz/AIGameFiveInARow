@@ -12,6 +12,7 @@ const Game = React.memo(() => {
     const [hoveredPosition, setHoveredPosition] = useState(null);
     const socketRef = useRef(null);
     const boardRef = useRef(null);
+    const [isWaitingForAI, setIsWaitingForAI] = useState(false);
 
     const renderCount = useRef(0);
 
@@ -24,6 +25,7 @@ const Game = React.memo(() => {
     const handleGameOver = useCallback((message) => {
         setWinner(message.winner,);
         setGameOver(true);
+        setIsWaitingForAI(false); // 游戏结束，停止等待AI
     }, []);
 
     // 更新棋盘状态并根据当前玩家的颜色更新 currentPlayer
@@ -31,6 +33,7 @@ const Game = React.memo(() => {
         console.log("handleUpdateBoard next_turn", next_turn);
         setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
         setBoard(newBoard);
+        setIsWaitingForAI(false); // AI已下完
     }, []);
 
     useEffect(() => {
@@ -76,11 +79,15 @@ const Game = React.memo(() => {
             if (sendToServer) {
                 console.log("playerMove", {x, y, player})
                 socketRef.current.emit("playerMove", {x, y, player});
+                // 如果是用户下棋，落子后等待AI
+                if (player === playerColor) {
+                    setIsWaitingForAI(true);
+                }
             }
         } else {
             console.log("Invalid move!");
         }
-    }, [board, gameOver]);
+    }, [board, gameOver, playerColor]);
 
     const handleBoardClick = useCallback((event) => {
         if (gameOver) {
@@ -253,7 +260,17 @@ const Game = React.memo(() => {
                     <h3 className="winner-text">Winner: {winner}</h3>
                 </>
             ) : (
-                <h3>Current Player: {currentPlayer === playerColor ? "You" : "Opponent"}</h3>
+                <h3 className="dynamic-player-tip">
+                    {isWaitingForAI ? (
+                        <>AI ({currentPlayer === playerColor ? (playerColor === "black" ? "white" : "black") : currentPlayer}) is playing<span className="dot-flash">...</span></>
+                    ) : (
+                        currentPlayer === playerColor ? (
+                            <>You ({playerColor}) is playing<span className="dot-flash">...</span></>
+                        ) : (
+                            <>AI ({currentPlayer}) is playing<span className="dot-flash">...</span></>
+                        )
+                    )}
+                </h3>
             )}
             {renderBoard()}
             {/* 渲染 WinnerModal */}
