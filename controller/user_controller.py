@@ -38,12 +38,8 @@ def send_verification_code():
         return jsonify({"status": "error", "message": "Email is already registered."}), 400
 
     # 发送验证码
-    # result = verification_service.send_verification_code(email)
-    # mock success
-    result = {
-        "status": "success",
-        "message": "Verification code sent successfully."
-    }
+    result = verification_service.send_verification_code(email)
+    
     if result["status"] == "success":   
         return jsonify(result), 200
     else:

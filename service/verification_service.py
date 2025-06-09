@@ -111,11 +111,43 @@ class VerificationService:
         Returns:
             dict: 包含验证结果的字典
         """
-        # 开发环境：自动验证通过
-        return {
-            "status": "success",
-            "message": "Email verified successfully."
-        }
+        if email not in self.verification_codes:
+            return {
+                "status": "error",
+                "message": "No verification code found for this email."
+            }
+            
+        code_data = self.verification_codes[email]
+        
+        # 检查验证码是否过期
+        if time.time() - code_data['timestamp'] > Config.VERIFICATION_CODE_EXPIRY:
+            del self.verification_codes[email]
+            return {
+                "status": "error",
+                "message": "Verification code has expired."
+            }
+            
+        # 检查尝试次数
+        if code_data['attempts'] >= self.max_attempts:
+            del self.verification_codes[email]
+            return {
+                "status": "error",
+                "message": "Too many failed attempts. Please request a new code."
+            }
+            
+        # 验证码匹配
+        if code_data['code'] == provided_code:
+            del self.verification_codes[email]
+            return {
+                "status": "success",
+                "message": "Email verified successfully."
+            }
+        else:
+            code_data['attempts'] += 1
+            return {
+                "status": "error",
+                "message": "Invalid verification code."
+            }
     
     def is_email_service_enabled(self):
         """检查邮件服务是否可用"""
