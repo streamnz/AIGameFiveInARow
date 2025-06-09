@@ -29,6 +29,44 @@
   background-clip: text;
 }
 
+/* 可点击的导航栏标题 */
+.navbar-title {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-title:hover {
+  transform: translateY(-2px) scale(1.05);
+  filter: brightness(1.2) saturate(1.2);
+}
+
+.navbar-title:active {
+  transform: translateY(-1px) scale(1.02);
+  transition: all 0.1s ease;
+}
+
+/* 添加微妙的光晕效果 */
+.navbar-title::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  opacity: 0;
+  border-radius: 8px;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  filter: blur(10px);
+}
+
+.navbar-title:hover::after {
+  opacity: 0.2;
+}
+
 /* 右侧按钮容器 */
 .navbar-right {
   display: flex;

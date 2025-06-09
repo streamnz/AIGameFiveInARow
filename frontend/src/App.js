@@ -5,6 +5,7 @@ import LoginModal from './component/LoginModal';
 import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
 import LandingPage from './component/LandingPage';
+import Settings from './component/Settings';
 import {parseJwt} from './component/jwt_util';
 import Game from './component/Game';
 import {AuthContext, AuthProvider} from './context/AuthContext';
@@ -63,6 +64,9 @@ function App() {
 
                 {/* 游戏页面 */}
                 <Route path="/game" element={<Game/>}/>
+                
+                {/* 设置页面 */}
+                <Route path="/settings" element={<Settings/>}/>
             </Routes>
 
             {/* 登录模态框 */}

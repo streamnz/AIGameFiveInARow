@@ -38,3 +38,42 @@ class UserDAO:
         Retrieve the leaderboard based on users' scores.
         """
         return User.query.order_by(User.score.desc()).all()
+
+    def bind_user_wallet(self, user_id, wallet_address, wallet_type='metamask'):
+        """
+        绑定用户钱包
+        """
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            user.bind_wallet(wallet_address, wallet_type)
+            db.session.commit()
+            return user
+        return None
+
+    def unbind_user_wallet(self, user_id):
+        """
+        解绑用户钱包
+        """
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            user.unbind_wallet()
+            db.session.commit()
+            return user
+        return None
+
+    def get_user_by_wallet_address(self, wallet_address):
+        """
+        根据钱包地址查找用户
+        """
+        return User.query.filter_by(wallet_address=wallet_address).first()
+
+    def update_user_wallet(self, user_id, wallet_address, wallet_type='metamask'):
+        """
+        更新用户钱包信息
+        """
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            user.bind_wallet(wallet_address, wallet_type)
+            db.session.commit()
+            return user
+        return None

@@ -179,3 +179,78 @@ def get_verification_status():
 @user_controller.route('/base/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "success", "message": "Service is running healthy."}), 200
+
+
+# 钱包相关接口
+
+@user_controller.route('/bind-wallet', methods=['POST'])
+@token_required
+def bind_wallet():
+    """绑定钱包地址"""
+    data = request.get_json()
+    wallet_address = data.get('wallet_address')
+    wallet_type = data.get('wallet_type', 'metamask')
+
+    if not wallet_address:
+        return jsonify({"status": "error", "message": "Wallet address is required."}), 400
+
+    # 从JWT token中获取用户ID
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        from utils.jwt_util import jwt, SECRET_KEY
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = decoded_token.get('id')
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Invalid token."}), 401
+
+    # 绑定钱包
+    result = user_service.bind_wallet(user_id, wallet_address, wallet_type)
+    
+    if result["status"] == "success":
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 400
+
+
+@user_controller.route('/unbind-wallet', methods=['POST'])
+@token_required
+def unbind_wallet():
+    """解绑钱包地址"""
+    # 从JWT token中获取用户ID
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        from utils.jwt_util import jwt, SECRET_KEY
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = decoded_token.get('id')
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Invalid token."}), 401
+
+    # 解绑钱包
+    result = user_service.unbind_wallet(user_id)
+    
+    if result["status"] == "success":
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 400
+
+
+@user_controller.route('/wallet-info', methods=['GET'])
+@token_required
+def get_wallet_info():
+    """获取用户钱包信息"""
+    # 从JWT token中获取用户ID
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        from utils.jwt_util import jwt, SECRET_KEY
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = decoded_token.get('id')
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Invalid token."}), 401
+
+    # 获取钱包信息
+    result = user_service.get_user_wallet_info(user_id)
+    
+    if result["status"] == "success":
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 400

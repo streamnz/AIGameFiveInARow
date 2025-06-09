@@ -13,10 +13,15 @@ function Navbar({ onLoginClick, onRegisterClick }) {
         navigate('/');
     };
 
+    // 点击标题回到首页
+    const handleTitleClick = () => {
+        navigate('/');
+    };
+
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <h2>CryptoChess</h2>
+                <h2 className="navbar-title" onClick={handleTitleClick}>CryptoChess</h2>
             </div>
 
             <div className="navbar-right">
@@ -24,7 +29,7 @@ function Navbar({ onLoginClick, onRegisterClick }) {
                     // 如果用户已登录，显示 Welcome 和 Settings
                     <div className="user-info">
                         <span>Kia Ora, {loggedInUser.username}!</span>
-                        <button className="navbar-btn settings-btn">Settings</button>
+                        <button className="navbar-btn settings-btn" onClick={() => navigate('/settings')}>Settings</button>
                         <button className="navbar-btn logout-btn" onClick={handleLogoutAndRedirect}>Logout</button>
                     </div>
                 ) : (
