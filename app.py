@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
@@ -22,8 +22,12 @@ def create_app():
     """创建Flask应用实例"""
     app = Flask(__name__, static_folder='frontend/build/static', template_folder='frontend/build')
     
-    # 启用跨域支持 - 允许所有来源
-    CORS(app, origins="*", supports_credentials=True)
+    # 增强的跨域支持 - 适配AWS ELB
+    CORS(app, 
+         origins="*",
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
     
     # 加载配置
     app.config.from_object(Config)
@@ -35,7 +39,42 @@ def create_app():
                      cors_allowed_origins="*",  # 允许所有来源
                      cors_credentials=True,
                      allow_upgrades=True,
-                     transports=['websocket', 'polling'])
+                     transports=['websocket', 'polling'],
+                     logger=True,
+                     engineio_logger=True)
+
+    # 添加全局CORS处理 - 确保AWS ELB环境下正常工作
+    @app.after_request
+    def after_request(response):
+        origin = request.headers.get('Origin')
+        if origin:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+        else:
+            response.headers.add('Access-Control-Allow-Origin', '*')
+        
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Max-Age', '86400')
+        return response
+
+    # 处理预检请求
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            from flask import make_response
+            response = make_response()
+            origin = request.headers.get('Origin')
+            if origin:
+                response.headers.add("Access-Control-Allow-Origin", origin)
+            else:
+                response.headers.add("Access-Control-Allow-Origin", "*")
+            
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers')
+            response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            response.headers.add('Access-Control-Max-Age', '86400')
+            return response
 
     # 注册蓝图
     from controller.game_controller import game_controller
