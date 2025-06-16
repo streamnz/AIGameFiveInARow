@@ -1,111 +1,124 @@
-# FiveChessWithAI (Gomoku with AI)
+# StreamNZ Gomoku AI Battle Platform
 
-This is a web-based implementation of the classic **Gomoku (Five in a Row)** game with an AI opponent. The project is built using **Flask** for the backend and supports user login, AI gameplay, and a leaderboard to track players' scores. The AI is implemented using algorithms like Minimax with Alpha-Beta pruning.
+> A Gomoku (Five-in-a-Row) battle and analysis platform based on Flask + React + Socket.IO + multiple AI models (DeepSeek/Llama3), supporting both local and cloud deployment, compatible with AWS, Amplify, EC2, ELB, and more.
 
-## Project Structure
-`````
-FiveChessWithAI/
-├── ai/
-│   ├── game.py                  # Defines Board and Game classes for Gomoku
-│   ├── human_play.py            # Implements human vs AI gameplay
-│   ├── mcts_alphaZero.py        # Monte Carlo Tree Search for AlphaZero
-│   ├── policy_value_net_pytorch.py # PyTorch implementation of policy-value network
-│   ├── train.py                 # Training pipeline for AlphaZero
-│   └── README.md                # Documentation for AI implementation
-├── app.py                       # Flask application main entry point
-├── config.py                    # Application configuration
-├── controller/
-│   ├── game_controller.py       # Handles game-related routes and logic
-│   └── user_controller.py       # Handles user authentication and leaderboard
-├── dao/
-│   ├── game_dao.py              # Database access for game state
-│   └── user_dao.py              # Database access for user management
-├── model/
-│   └── user.py                  # User model for authentication
-├── service/
-│   ├── game_service.py          # Business logic for the game
-│   └── user_service.py          # Logic for managing users and authentication
-├── source/
-│   ├── AI.py                    # AI logic (Minimax with Alpha-Beta pruning)
-│   ├── gomoku.py                # Game state management
-│   └── utils.py                 # Helper functions for the game
-├── static/                      # Static files (CSS, images, JavaScript)
-├── templates/                   # HTML templates
-├── utils/
-│   ├── config.ini               # Configuration file
-│   └── jwt_util.py              # JWT utility functions
-├── websocket/
-│   └── MyWebsocket.py           # WebSocket implementation for real-time gameplay
-├── requirements.txt             # Python dependencies
-└── README.md                    # Project documentation
-`````
-## Features
+---
 
-1. **Gomoku Gameplay**: Play the classic Five-in-a-Row game.
-2. **AI Opponent**: The AI opponent is built using Minimax and Alpha-Beta pruning.
-3. **User Login & Registration**: Players can register and log in to track their scores.
-4. **Leaderboard**: Players who beat the AI are added to a leaderboard, which displays on the game page.
-5. **Responsive Frontend**: Game board, login form, and leaderboard are all rendered using HTML, CSS, and JavaScript.
+## Directory Structure
 
-## How to Run
+```
+.
+├── app.py                # Flask main app entry, WebSocket & API service
+├── requirements.txt      # Python dependencies
+├── config.py             # Config file
+├── ai/                   # AI strategies (DeepSeek/Llama3/OpenAI, etc.)
+├── websocket/            # WebSocket event handlers
+├── controller/           # API routes
+├── model/                # Data models
+├── service/dao/utils/    # Business logic / Data access / Utilities
+├── frontend/             # React frontend
+│   ├── src/
+│   │   ├── component/    # Main page components
+│   │   ├── config/       # Frontend environment config
+│   │   ├── interceptor/  # Axios interceptors
+│   │   └── api/          # API call wrappers
+│   ├── public/
+│   └── package.json
+└── LICENSE
+```
 
-1. **Clone the repository**:
+---
 
-    ```bash
-    git clone https://github.com/your-username/FiveChessWithAI.git
-    cd FiveChessWithAI
-    ```
+## Quick Start
 
-2. **Set up the Python virtual environment**:
+### 1. Backend (Flask)
 
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows, use venv\Scripts\activate
-    ```
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-3. **Install dependencies**:
+# Configure environment variables (for AI/DB/keys, if needed)
+cp .env.example .env
+# Edit .env and fill in API keys, etc.
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+# Start service (development mode)
+python app.py
 
-4. **Set up the database**:
+# For production, use gunicorn + eventlet
+gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:5050 app:flask_app
+```
 
-    You will need to initialize the SQLite database by running:
+### 2. Frontend (React)
 
-    ```bash
-    flask db init
-    flask db migrate
-    flask db upgrade
-    ```
+```bash
+cd frontend
 
-5. **Run the Flask application**:
+# Install dependencies
+npm install
 
-    ```bash
-    flask run
-    ```
+# Local development
+npm start
 
-6. **Access the application**:
+# Build for production
+npm run build
+```
 
-    Open a browser and navigate to `http://127.0.0.1:5000` to access the game and login page.
+### 3. Configure Environment Variables
 
-## Project Dependencies
+- Frontend environment variables (for Amplify/local):
+  ```
+  REACT_APP_API_BASE_URL=https://aigame.streamnz.com
+  REACT_APP_SOCKET_URL=https://aigame.streamnz.com
+  ```
+- Backend CORS is open to all origins by default; for production, specify allowed domains.
 
-The `requirements.txt` file includes all the Python dependencies required for this project. The key libraries used are:
+---
 
-- **Flask**: Backend framework for handling HTTP requests.
-- **Flask-SQLAlchemy**: SQLAlchemy for handling the SQLite database.
-- **Flask-Migrate**: For handling database migrations.
-- **WTForms & Flask-WTF**: For user registration and login form validation.
-- **Matplotlib & Pandas**: Used for evaluating AI performance (optional).
+## Main Features
 
+- Gomoku battle (15x15 standard board)
+- Human vs AI / AI vs AI
+- Multiple AI model switching (DeepSeek/Llama3/OpenAI)
+- Real-time WebSocket communication
+- Smart move selection, threat detection, attack/defense analysis
+- User registration/login/session management
+- Rich frontend interaction and animation
 
-## Future Improvements
+---
 
-- Improve the AI by using more advanced algorithms or neural networks.
-- Add multiplayer support.
-- Add more game features like timers, chat, and difficulty levels.
+## AI Capabilities
+
+See [ai/README.md](ai/README.md)
+
+- Supports DeepSeek/Llama3/OpenAI models
+- Smart threat detection, opportunity analysis, auto fallback
+- Supports both local and cloud inference
+- Extensible for custom AI strategies
+
+---
+
+## CORS & Deployment
+
+- Compatible with AWS ELB/ALB, Amplify, EC2, and other major cloud environments
+- Backend supports global CORS (can be restricted as needed)
+- Frontend supports custom API/Socket URLs for multi-domain deployment
+- See [AWS_ELB_CORS_GUIDE.md](AWS_ELB_CORS_GUIDE.md) for details
+
+---
+
+## Dependencies
+
+- Python 3.8+
+- Flask, Flask-SocketIO, Flask-CORS, Flask-JWT-Extended, SQLAlchemy, eventlet, gunicorn, requests, openai, deepseek, etc.
+- Node.js 18+, React 18+, socket.io-client, axios, etc.
+
+---
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+MIT License  
+Copyright (c) 2024 luckyGuy
+
+---
+
+For detailed AI strategies, advanced development, cloud deployment, Nginx/ELB configuration, etc., please refer to subdirectory READMEs or contact the author. 

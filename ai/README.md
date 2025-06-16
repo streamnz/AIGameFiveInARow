@@ -1,51 +1,51 @@
-# 五子棋 DeepSeek AI 实现
+# Gomoku DeepSeek AI Implementation
 
-本项目使用 DeepSeek API 实现智能五子棋对战功能。
+This project implements an intelligent Gomoku (Five in a Row) game using the DeepSeek API.
 
-## 功能特点
+## Features
 
-- 基于 DeepSeek 大语言模型的智能决策
-- 支持 15x15 标准五子棋棋盘
-- 智能策略分析，包括攻防转换
-- 实时对战响应
-- 自动错误恢复机制
+- Intelligent decision-making based on DeepSeek Large Language Model
+- Support for standard 15x15 Gomoku board
+- Smart strategy analysis, including offensive and defensive transitions
+- Real-time game response
+- Automatic error recovery mechanism
 
-## 配置要求
+## Configuration Requirements
 
-1. 在项目根目录的 `.env` 文件中配置 DeepSeek API 密钥：
+1. Configure the DeepSeek API key in the `.env` file in the project root directory:
 
 ```env
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
 ```
 
-2. 确保网络连接稳定，能够访问 DeepSeek API
+2. Ensure stable network connection to access the DeepSeek API
 
-## AI 策略
+## AI Strategy
 
-DeepSeek AI 会根据当前棋局状态进行分析：
+The DeepSeek AI analyzes the current game state:
 
-1. **防御优先**：识别并阻止对手的连击威胁
-2. **进攻机会**：寻找自己的连击和获胜机会
-3. **位置控制**：优先占据棋盘关键位置
-4. **智能回退**：API 调用失败时使用智能位置选择算法
+1. **Defense First**: Identify and block opponent's winning threats
+2. **Offensive Opportunities**: Find winning combinations and opportunities
+3. **Position Control**: Prioritize occupying key board positions
+4. **Smart Fallback**: Use intelligent position selection algorithm when API calls fail
 
-## 使用方法
+## Usage
 
-AI 会自动处理以下场景：
-- 游戏开始时的首步落子
-- 响应玩家每一步棋
-- 分析复杂棋局并做出最优决策
-- 处理异常情况（如 API 超时）
+The AI automatically handles the following scenarios:
+- First move at the start of the game
+- Response to each player's move
+- Analysis of complex game situations and optimal decision-making
+- Handling exceptional cases (such as API timeouts)
 
-## 技术实现
+## Technical Implementation
 
-- **API 集成**：使用 DeepSeek Chat API 进行棋局分析
-- **智能解析**：从 AI 响应中准确提取落子坐标
-- **错误处理**：完善的异常处理和回退机制
-- **位置验证**：确保 AI 选择的位置合法有效
+- **API Integration**: Using DeepSeek Chat API for game analysis
+- **Intelligent Parsing**: Accurate extraction of move coordinates from AI responses
+- **Error Handling**: Comprehensive exception handling and fallback mechanisms
+- **Position Validation**: Ensuring AI-selected positions are legal and valid
 
-## 注意事项
+## Notes
 
-- API 调用需要一定时间，请耐心等待
-- 确保 `.env` 文件中的 API 密钥正确配置
-- 建议在网络稳定的环境下使用以获得最佳体验 
+- API calls may take some time, please be patient
+- Ensure the API key in the `.env` file is correctly configured
+- Recommended to use in a stable network environment for the best experience 
