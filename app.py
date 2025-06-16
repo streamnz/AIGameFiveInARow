@@ -32,7 +32,12 @@ def create_app():
     db.init_app(app)
     JWTManager(app)
     socketio.init_app(app, 
-                     cors_allowed_origins="*",
+                     cors_allowed_origins=[
+                         "https://aigame.streamnz.com",
+                         "https://www.aigame.streamnz.com",
+                         "http://localhost:3000",  # 开发环境
+                         "http://localhost:5050"   # 开发环境
+                     ],
                      cors_credentials=True,
                      allow_upgrades=True,
                      transports=['websocket', 'polling'])
