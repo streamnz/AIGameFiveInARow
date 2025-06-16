@@ -35,6 +35,7 @@ def create_app():
                      cors_allowed_origins=[
                          "https://aigame.streamnz.com",
                          "https://www.streamnz.com",
+                         "https://streamnz.com",  # 添加主域名
                          "http://localhost:3000",  # 开发环境
                          "http://localhost:5050"   # 开发环境
                      ],
