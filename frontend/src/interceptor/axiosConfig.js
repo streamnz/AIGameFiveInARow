@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import config from '../config/config';
 
 // 创建axios实例
 const apiClient = axios.create({
-  baseURL: 'https://aiGame.streamnz.com/', // 你的后端API基础URL
-  // baseURL: 'http://localhost:5050/', // 你的后端API基础URL
+  baseURL: config.API_BASE_URL, // 使用统一配置
   headers: {
     'Content-Type': 'application/json',
   },

@@ -2,6 +2,7 @@ import React, {useEffect, useState, useRef, useCallback} from "react";
 import {io} from "socket.io-client";
 import "./Game.css";
 import WinnerModal from "./WinnerModal"; // 引入 WinnerModal 组件
+import config from '../config/config'; // 引入统一配置
 
 const Game = React.memo(() => {
     const [board, setBoard] = useState(Array(15).fill(null).map(() => Array(15).fill(null)));
@@ -38,7 +39,7 @@ const Game = React.memo(() => {
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
-        socketRef.current = io("http://localhost:5050", {
+        socketRef.current = io(config.SOCKET_URL, {
             query: {token: jwtToken},
         });
 
