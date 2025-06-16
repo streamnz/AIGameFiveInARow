@@ -439,7 +439,6 @@ Response:"""
             if len(response_text.strip()) < 10 or not re.search(r'\d', response_text):
                 print("=== 响应过短分析 ===")
                 print(f"响应长度: {len(response_text.strip())} 字符 (阈值: 10)")
-                print(f"包含数字: {bool(re.search(r'\d', response_text))}")
                 print(f"响应内容: '{response_text}'")
                 
                 # 检查是否因为停止词而提前结束
