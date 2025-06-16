@@ -22,8 +22,8 @@ def create_app():
     """创建Flask应用实例"""
     app = Flask(__name__, static_folder='frontend/build/static', template_folder='frontend/build')
     
-    # 启用跨域支持
-    CORS(app)
+    # 启用跨域支持 - 允许所有来源
+    CORS(app, origins="*", supports_credentials=True)
     
     # 加载配置
     app.config.from_object(Config)
@@ -32,12 +32,7 @@ def create_app():
     db.init_app(app)
     JWTManager(app)
     socketio.init_app(app, 
-                     cors_allowed_origins=[
-                         "https://aigame.streamnz.com",
-                         "https://www.streamnz.com",
-                         "https://streamnz.com",  # 添加主域名
-                         "http://localhost:5051"   # 开发环境
-                     ],
+                     cors_allowed_origins="*",  # 允许所有来源
                      cors_credentials=True,
                      allow_upgrades=True,
                      transports=['websocket', 'polling'])
