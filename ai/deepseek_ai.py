@@ -24,31 +24,14 @@ class DeepSeekAI:
         # 生成空位坐标列表
         empty = [(i, j) for i in range(15) for j in range(15) if board[i][j] == '']
         prompt = f"""
-你是一个五子棋AI。
-规则：
-- 棋盘为15x15，双方轮流落子。
-- 任意一方在横向、纵向或斜向连成5个相同颜色的棋子即获胜。
-- 如果棋盘下满且无人连成5子，则为平局。
-- 你执{'黑' if current_player == 'black' else '白'}。
+你是一个五子棋AI。规则：15x15棋盘，连成5子获胜。你执{'黑' if current_player == 'black' else '白'}。
 
-你的目标是：想尽一切办法取得胜利！你需要主动进攻，积极寻找获胜机会，同时防止对手形成五连。
-
-五子棋常用攻防策略：
-- 主动创造"活四"（四连且两端都为空）或"冲四"（四连一端被堵，另一端为空），优先选择能形成活四的位置。
-- 如果对方有"活四"或"冲四"，必须优先封堵。
-- 主动创造"活三"（三连且两端都为空），为后续形成活四做准备。
-- 不要让对方形成连续四子且两端都没有我方棋子（避免被对方活四或冲四）。
-- 如果有机会形成"双三"或"双四"威胁（同时出现两个活三或活四），优先选择。
-- 进攻时优先考虑中心和关键点，防守时优先封堵对方潜在连子。
-
-棋盘如下（二维数组，0为空，1为黑，2为白）：
-行号/列号:  0  1  2 ... 14
+棋盘状态（0空，1黑，2白）：
 {arr_str}
-数组的第i行第j列对应棋盘的(i,j)坐标。
 
-空位坐标列表（只能从中选择）: {empty}
+空位坐标：{empty}
 
-请只从空位坐标中选择一个，返回你要落子的坐标，格式为(x,y)，不要输出任何解释或多余内容。
+请返回JSON格式：{{"x": 坐标x, "y": 坐标y, "analysis": "简短分析"}}
 """
         return prompt
 
@@ -147,57 +130,215 @@ class DeepSeekAI:
         board[x][y] = ''  # 恢复棋盘状态
         return False
 
+    def _create_few_shot_examples(self):
+        """创建 Few-shot 示例，用于提高缓存命中率"""
+        return [
+            # 示例1：开局第一手
+            {
+                "role": "user", 
+                "content": """你是一个五子棋AI。规则：15x15棋盘，连成5子获胜。你执黑。
+
+棋盘状态（0空，1黑，2白）：
+0: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+3: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+4: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+5: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+6: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+7: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+10: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+12: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+13: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+14: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+空位坐标：[(0, 0), (0, 1), ..., (14, 14)]
+
+请返回JSON格式：{"x": 坐标x, "y": 坐标y}"""
+            },
+            {
+                "role": "assistant",
+                "content": '{"x": 7, "y": 7, "analysis": "开局选择天元"}'
+            },
+            # 示例2：第二手应对
+            {
+                "role": "user",
+                "content": """你是一个五子棋AI。规则：15x15棋盘，连成5子获胜。你执白。
+
+棋盘状态（0空，1黑，2白）：
+0: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+3: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+4: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+5: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+6: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+7: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+10: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+12: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+13: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+14: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+空位坐标：[(0, 0), (0, 1), ..., (7, 6), (7, 8), ..., (14, 14)]
+
+请返回JSON格式：{"x": 坐标x, "y": 坐标y}"""
+            },
+            {
+                "role": "assistant",
+                "content": '{"x": 6, "y": 7, "analysis": "靠近对手形成威胁"}'
+            },
+            # 示例3：防守示例
+            {
+                "role": "user",
+                "content": """你是一个五子棋AI。规则：15x15棋盘，连成5子获胜。你执白。
+
+棋盘状态（0空，1黑，2白）：
+0: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+3: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+4: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+5: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+6: [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0]
+7: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+10: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+12: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+13: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+14: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+空位坐标：[(0, 0), (0, 1), ..., (7, 5), (7, 9), ..., (14, 14)]
+
+请返回JSON格式：{"x": 坐标x, "y": 坐标y}"""
+            },
+            {
+                "role": "assistant",
+                "content": '{"x": 9, "y": 7, "analysis": "封堵对手三连"}'
+            }
+        ]
+
     def get_move(self, board, current_player):
         """获取 DeepSeek AI 的下一步移动"""
         try:
             prompt = self._create_prompt(board, current_player)
             print(f"\n当前棋盘状态：\n{self._board_to_string(board)}")
             print(f"当前玩家：{current_player}")
-            print(f"发送给 DeepSeek 的提示：\n{prompt}")
+            
+            # 构建包含 Few-shot 示例的消息列表
+            messages = [
+                {"role": "system", "content": """你是一个五子棋AI专家。你必须严格按照以下JSON格式返回你的决策：
+
+{"x": 数字, "y": 数字, "analysis": "简短分析"}
+
+注意：
+1. 必须返回具体的数字，不要使用变量
+2. 坐标必须是空位
+3. 只返回JSON，不要有其他内容
+4. 分析内容不超过10个字"""}
+            ]
+            
+            # 添加 Few-shot 示例
+            messages.extend(self._create_few_shot_examples())
+            
+            # 添加当前请求
+            messages.append({"role": "user", "content": prompt})
             
             data = {
-                "model": "deepseek-chat",
-                "messages": [
-                    {"role": "system", "content": "你是一个五子棋AI，只返回你要落子的坐标，格式为(x,y)，不要输出任何解释。"},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.3,
-                "max_tokens": 100
+                "model": "deepseek-reasoner",
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": 5000,  # 使用 deepseek-reasoner 模型支持的最大值
+                "top_p": 0.1,
+                "frequency_penalty": 0.0,
+                "presence_penalty": 0.0,
+                "response_format": {"type": "json_object"},
+                "return_reasoning": False  # 禁用推理过程返回
             }
 
-            response = requests.post(self.api_url, headers=self.headers, json=data, timeout=30)
+            # 设置连接超时和读取超时
+            response = requests.post(
+                self.api_url, 
+                headers=self.headers, 
+                json=data, 
+                timeout=(10, 60)  # (连接超时, 读取超时)
+            )
             response.raise_for_status()
             
-            result = response.json()
-            move_text = result['choices'][0]['message']['content'].strip()
-            print(f"DeepSeek AI 响应: {move_text}")
+            # 获取原始响应文本
+            response_text = response.text
+            print(f"API 原始响应: {response_text}")
             
-            # 提取坐标
-            match = re.search(r'\((\d+),\s*(\d+)\)', move_text)
-            if match:
-                x, y = int(match.group(1)), int(match.group(2))
-                print(f"解析出的坐标: ({x}, {y})")
-                
-                # 详细的坐标验证
-                if not (0 <= x <= 14 and 0 <= y <= 14):
-                    print(f"坐标超出范围：x={x}, y={y}，坐标必须在0-14之间")
-                    new_x, new_y = self._find_valid_position(board)
-                    print(f"找到替代位置: ({new_x}, {new_y})")
-                    return new_x, new_y
-                
-                if board[x][y] != '':
-                    print(f"位置已被占用：board[{x}][{y}]={board[x][y]}")
-                    print("当前棋盘状态：")
-                    for i in range(15):
-                        for j in range(15):
-                            if board[i][j] != '':
-                                print(f"位置({i},{j})已被{board[i][j]}占用")
-                    new_x, new_y = self._find_valid_position(board)
-                    print(f"找到替代位置: ({new_x}, {new_y})")
-                    return new_x, new_y
-                
-                print(f"坐标有效，返回 ({x}, {y})")
-                return x, y
+            # 检查缓存命中情况
+            try:
+                result = response.json()
+                if 'usage' in result:
+                    usage = result['usage']
+                    cache_hit = usage.get('prompt_cache_hit_tokens', 0)
+                    cache_miss = usage.get('prompt_cache_miss_tokens', 0)
+                    total_prompt = usage.get('prompt_tokens', 0)
+                    
+                    if cache_hit > 0:
+                        cache_rate = (cache_hit / total_prompt) * 100 if total_prompt > 0 else 0
+                        print(f"缓存命中: {cache_hit} tokens, 未命中: {cache_miss} tokens, 命中率: {cache_rate:.1f}%")
+                    else:
+                        print(f"无缓存命中, 总输入: {total_prompt} tokens")
+            except:
+                pass
+            
+            # 尝试解析JSON响应
+            try:
+                result = response.json()
+                if 'choices' in result and result['choices']:
+                    message = result['choices'][0].get('message', {})
+                    content = message.get('content', '').strip()
+                    
+                    print(f"DeepSeek AI 响应内容: {content}")
+                    
+                    # 尝试解析JSON内容
+                    if content:
+                        try:
+                            move_data = json.loads(content)
+                            if 'x' in move_data and 'y' in move_data:
+                                x, y = int(move_data['x']), int(move_data['y'])
+                                analysis = move_data.get('analysis', '无分析')
+                                
+                                print(f"解析出的坐标: ({x}, {y})")
+                                print(f"AI 分析: {analysis}")
+                                
+                                # 验证坐标
+                                if not (0 <= x <= 14 and 0 <= y <= 14):
+                                    print(f"坐标超出范围：x={x}, y={y}")
+                                    new_x, new_y = self._find_valid_position(board)
+                                    print(f"找到替代位置: ({new_x}, {new_y})")
+                                    return new_x, new_y
+                                
+                                if board[x][y] != '':
+                                    print(f"位置已被占用：board[{x}][{y}]={board[x][y]}")
+                                    new_x, new_y = self._find_valid_position(board)
+                                    print(f"找到替代位置: ({new_x}, {new_y})")
+                                    return new_x, new_y
+                                
+                                return x, y
+                            else:
+                                print("JSON中缺少必要的x和y字段")
+                        except json.JSONDecodeError as e:
+                            print(f"JSON解析失败: {e}")
+                            print(f"清理后的内容: {content}")
+                    else:
+                        print("没有找到有效的响应内容")
+            except Exception as e:
+                print(f"响应解析失败: {e}")
+                print(f"错误类型: {type(e).__name__}")
+                import traceback
+                print(f"错误堆栈: {traceback.format_exc()}")
             
             # 如果没有找到有效坐标，使用智能寻找替代位置
             print("未找到有效坐标，使用智能寻找替代位置...")
@@ -207,6 +348,9 @@ class DeepSeekAI:
             
         except Exception as e:
             print(f"Error in get_move: {str(e)}")
+            print(f"错误类型: {type(e).__name__}")
+            import traceback
+            print(f"错误堆栈: {traceback.format_exc()}")
             # 发生错误时也使用智能寻找替代位置
             new_x, new_y = self._find_valid_position(board)
             print(f"发生错误，使用替代位置: ({new_x}, {new_y})")

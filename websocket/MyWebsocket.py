@@ -3,6 +3,12 @@ from flask_socketio import emit, disconnect
 import threading
 from utils.jwt_util import get_decoded_token_from_request, decode_jwt_token
 from ai.deepseek_ai import DeepSeekAI
+from ai.llama3_ai import Llama3AI
+from dotenv import load_dotenv
+import os
+
+# 加载环境变量
+load_dotenv()
 
 # 15x15 棋盘尺寸
 board_size = 15
@@ -11,8 +17,21 @@ board_size = 15
 games = {}
 games_lock = threading.Lock()
 
-# 初始化 OpenAI AI
+# 初始化 AI 模型
 deepseek_ai = DeepSeekAI()
+llama3_ai = Llama3AI()
+
+# AI 模型选择 - 从 .env 文件或环境变量中读取
+AI_MODEL = os.getenv('AI_MODEL', 'deepseek')  # 默认使用 deepseek，可选 'llama3'
+
+def get_ai_instance():
+    """根据配置返回对应的 AI 实例"""
+    if AI_MODEL.lower() == 'llama3':
+        print("使用本地 Llama3 AI 模型")
+        return llama3_ai
+    else:
+        print("使用 DeepSeek AI 模型")
+        return deepseek_ai
 
 # 客户端连接时的处理逻辑
 def handle_connect():
@@ -27,7 +46,8 @@ def handle_connect():
                     "board": [['' for _ in range(board_size)] for _ in range(board_size)],
                     "current_player": "black",
                     "status": "ongoing",
-                    "winner": None
+                    "winner": None,
+                    "ai_model": AI_MODEL  # 记录使用的 AI 模型
                 }
     except Exception as e:
         print(f"Connection error: {str(e)}")
@@ -63,14 +83,15 @@ def handle_ai_first_move():
 
             board = games[session_id]['board']
             
-            # 使用 OpenAI AI 获取第一步移动
-            ai_x, ai_y = deepseek_ai.get_move(board, 'black')
+            # 使用选定的 AI 获取第一步移动
+            ai_instance = get_ai_instance()
+            ai_x, ai_y = ai_instance.get_move(board, 'black')
             
             # 更新棋盘状态
             board[ai_x][ai_y] = 'black'
             games[session_id]['current_player'] = 'white'
 
-            print(f"AI placed black piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
+            print(f"AI ({AI_MODEL}) placed black piece at ({ai_x}, {ai_y}) for session ID: {session_id}")
 
             # 发送更新给客户端
             emit('updateBoard', {
@@ -108,7 +129,7 @@ def handle_player_move(data):
 
                 # 检查玩家是否获胜
                 if not check_and_emit_winner(session_id, x, y, player):
-                    print("AI is making its move...")
+                    print(f"AI ({AI_MODEL}) is making its move...")
                     # AI 响应玩家移动
                     ai_move(session_id, game['current_player'])
             else:
@@ -124,19 +145,20 @@ def ai_move(session_id, ai_player_color):
         print(f"No game found for session ID: {session_id}")
         return
 
-    print(f"AI is calculating its next move ({ai_player_color}) for session ID: {session_id}")
+    print(f"AI ({AI_MODEL}) is calculating its next move ({ai_player_color}) for session ID: {session_id}")
 
     board = games[session_id]['board']
     
-    # 使用 OpenAI AI 获取下一步移动
-    move_i, move_j = deepseek_ai.get_move(board, ai_player_color)
+    # 使用选定的 AI 获取下一步移动
+    ai_instance = get_ai_instance()
+    move_i, move_j = ai_instance.get_move(board, ai_player_color)
 
     # 更新棋盘状态
     board[move_i][move_j] = ai_player_color
     next_turn = 'black' if ai_player_color == 'white' else 'white'
     games[session_id]['current_player'] = next_turn
 
-    print(f"AI placed {ai_player_color} piece at ({move_i}, {move_j}) for session ID: {session_id}")
+    print(f"AI ({AI_MODEL}) placed {ai_player_color} piece at ({move_i}, {move_j}) for session ID: {session_id}")
 
     # 检查 AI 是否获胜
     if not check_and_emit_winner(session_id, move_i, move_j, ai_player_color):
@@ -144,6 +166,31 @@ def ai_move(session_id, ai_player_color):
             'board': games[session_id]['board'], 
             'next_turn': next_turn
         }, broadcast=True)
+
+# 处理切换 AI 模型
+def handle_switch_ai_model(data):
+    """处理切换 AI 模型的请求"""
+    try:
+        decoded_token = get_decoded_token_from_request()
+        session_id = decoded_token.get('email')
+        
+        new_model = data.get('model', 'deepseek').lower()
+        if new_model not in ['deepseek', 'llama3']:
+            print(f"Invalid AI model: {new_model}")
+            return
+        
+        global AI_MODEL
+        AI_MODEL = new_model
+        
+        with games_lock:
+            if session_id in games:
+                games[session_id]['ai_model'] = AI_MODEL
+        
+        print(f"AI model switched to: {AI_MODEL} for session ID: {session_id}")
+        emit('aiModelChanged', {'model': AI_MODEL}, broadcast=True)
+        
+    except Exception as e:
+        print(f"Error switching AI model: {str(e)}")
 
 # 检查胜负条件
 def check_winner(board, x, y, player):
@@ -202,10 +249,11 @@ def handle_reset_game():
                     "board": [['' for _ in range(board_size)] for _ in range(board_size)],
                     "current_player": "black",
                     "status": "ongoing",
-                    "winner": None
+                    "winner": None,
+                    "ai_model": AI_MODEL  # 保持当前 AI 模型设置
                 }
                 emit('updateBoard', {'board': games[session_id]['board']}, broadcast=True)
-                print(f"Game reset for session ID: {session_id}")
+                print(f"Game reset for session ID: {session_id} with AI model: {AI_MODEL}")
             else:
                 print(f"No game found to reset for session ID: {session_id}")
                 
