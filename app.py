@@ -34,7 +34,7 @@ def create_app():
     socketio.init_app(app, 
                      cors_allowed_origins=[
                          "https://aigame.streamnz.com",
-                         "https://www.aigame.streamnz.com",
+                         "https://www.streamnz.com",
                          "http://localhost:3000",  # 开发环境
                          "http://localhost:5050"   # 开发环境
                      ],
