@@ -32,11 +32,18 @@ def create_app():
     # 加载配置
     app.config.from_object(Config)
     
+
+    ALLOWED_ORIGINS = [
+    "https://www.streamnz.com",
+    "https://streamnz.com",
+    "https://streamnz-api.streamnz.com",
+    "http://localhost:5051"
+]
     # 初始化扩展
     db.init_app(app)
     JWTManager(app)
     socketio.init_app(app, 
-                     cors_allowed_origins="*",  # 允许所有来源
+                     cors_allowed_origins=ALLOWED_ORIGINS,  # 允许所有来源
                      cors_credentials=True,
                      allow_upgrades=True,
                      transports=['websocket', 'polling'],
