@@ -31,7 +31,11 @@ def create_app():
     # 初始化扩展
     db.init_app(app)
     JWTManager(app)
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, 
+                     cors_allowed_origins="*",
+                     cors_credentials=True,
+                     allow_upgrades=True,
+                     transports=['websocket', 'polling'])
 
     # 注册蓝图
     from controller.game_controller import game_controller
