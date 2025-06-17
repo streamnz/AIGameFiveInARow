@@ -24,10 +24,16 @@ const Game = React.memo(() => {
 
     // 处理游戏结束
     const handleGameOver = useCallback((message) => {
-        setWinner(message.winner,);
+        console.log("=== Game Over Debug ===");
+        console.log("Winner from server:", message.winner);
+        console.log("Player color:", playerColor);
+        console.log("Match result:", message.winner === playerColor ? "PLAYER WINS" : "AI WINS");
+        console.log("======================");
+        
+        setWinner(message.winner);
         setGameOver(true);
         setIsWaitingForAI(false); // 游戏结束，停止等待AI
-    }, []);
+    }, [playerColor]);
 
     // 更新棋盘状态并根据当前玩家的颜色更新 currentPlayer
     const handleUpdateBoard = useCallback(({board: newBoard, next_turn}) => {
@@ -300,6 +306,9 @@ const Game = React.memo(() => {
                             {winner === playerColor ? 
                                 "Your strategic brilliance has led you to victory!" :
                                 "Don't give up! Challenge the AI again!"}
+                        </div>
+                        <div className="debug-info" style={{fontSize: '12px', color: '#666', marginTop: '10px'}}>
+                            Debug: winner="{winner}", playerColor="{playerColor}", match={winner === playerColor ? 'YES' : 'NO'}
                         </div>
                     </div>
                     <div className="game-board-container">
