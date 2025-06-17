@@ -345,6 +345,12 @@
     -webkit-text-fill-color: transparent;
 }
 
+.winner-unknown {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .winner-subtext {
     font-size: 16px;
     color: #94a3b8;

@@ -201,6 +201,33 @@ def handle_switch_ai_model(data):
 # 检查胜负条件
 def check_winner(board, x, y, player):
     """检查指定玩家在指定位置是否获胜"""
+    print(f"=== 检查获胜者 ===")
+    print(f"检查位置: ({x}, {y}), 玩家: '{player}' (type: {type(player)})")
+    print(f"该位置的实际值: '{board[x][y]}' (type: {type(board[x][y])})")
+    
+    # 打印棋盘周围区域用于调试
+    print("棋盘周围区域:")
+    for i in range(max(0, x-2), min(board_size, x+3)):
+        row_str = ""
+        for j in range(max(0, y-2), min(board_size, y+3)):
+            if i == x and j == y:
+                row_str += f"[{board[i][j] if board[i][j] else '.'}]"
+            else:
+                row_str += f" {board[i][j] if board[i][j] else '.'} "
+        print(f"行{i}: {row_str}")
+    
+    # 确保player参数不为空
+    if not player or player == '':
+        print(f"警告: player参数为空或空字符串")
+        return None
+    
+    # 确保指定位置确实是该玩家的棋子
+    if board[x][y] != player:
+        print(f"警告: 位置({x}, {y})的棋子'{board[x][y]}'与玩家'{player}'不匹配")
+        print(f"棋盘该位置值的repr: {repr(board[x][y])}")
+        print(f"玩家参数的repr: {repr(player)}")
+        return None
+    
     directions = [
         (0, 1),   # 水平方向
         (1, 0),   # 垂直方向
@@ -225,22 +252,36 @@ def check_winner(board, x, y, player):
             i -= dx
             j -= dy
 
+        print(f"方向({dx}, {dy}): 连子数 = {count}")
+        
         if count >= 5:
-            print(f"{player} wins with {count} in a row!")
+            print(f"找到获胜: {player} 在方向({dx}, {dy})有 {count} 连子!")
             return player
 
+    print(f"未找到获胜条件")
     return None
 
 # 检查并发送获胜信息
 def check_and_emit_winner(session_id, x, y, player):
     """检查是否有玩家获胜，如果有则发送获胜信息"""
+    print(f"=== 检查并发送获胜信息 ===")
+    print(f"会话ID: {session_id}, 位置: ({x}, {y}), 玩家: '{player}'")
+    
     winner = check_winner(games[session_id]['board'], x, y, player)
-    if winner:
+    print(f"检查结果: winner = '{winner}' (type: {type(winner)})")
+    
+    if winner and winner != '':
         games[session_id]['status'] = 'ended'
         games[session_id]['winner'] = winner
-        emit('gameOver', {'winner': winner}, broadcast=True)
+        
+        print(f"发送gameOver事件: winner = '{winner}' (type: {type(winner)}, repr: {repr(winner)})")
+        game_over_data = {'winner': winner}
+        print(f"gameOver数据: {game_over_data}")
+        emit('gameOver', game_over_data, broadcast=True)
         print(f"Game over! Winner: {winner} for session ID: {session_id}")
         return True
+    
+    print(f"游戏继续，没有获胜者")
     return False
 
 # 重置游戏

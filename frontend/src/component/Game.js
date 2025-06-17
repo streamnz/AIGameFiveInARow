@@ -9,11 +9,14 @@ const Game = React.memo(() => {
     const [currentPlayer, setCurrentPlayer] = useState("black");
     const [gameOver, setGameOver] = useState(false);
     const [winner, setWinner] = useState(null);
+    const [finalWinner, setFinalWinner] = useState(null); // 保存最终获胜者，不会被清空
     const [playerColor, setPlayerColor] = useState(null);
     const [hoveredPosition, setHoveredPosition] = useState(null);
     const socketRef = useRef(null);
     const boardRef = useRef(null);
     const [isWaitingForAI, setIsWaitingForAI] = useState(false);
+    const [socketConnected, setSocketConnected] = useState(false);
+    const [showWinnerModal, setShowWinnerModal] = useState(false); // 控制弹窗显示
 
     const renderCount = useRef(0);
 
@@ -22,27 +25,9 @@ const Game = React.memo(() => {
         console.log("Game component rendered", renderCount.current, "times");
     }, []);
 
-    // 处理游戏结束
-    const handleGameOver = useCallback((message) => {
-        console.log("=== Game Over Debug ===");
-        console.log("Winner from server:", message.winner);
-        console.log("Player color:", playerColor);
-        console.log("Match result:", message.winner === playerColor ? "PLAYER WINS" : "AI WINS");
-        console.log("======================");
-        
-        setWinner(message.winner);
-        setGameOver(true);
-        setIsWaitingForAI(false); // 游戏结束，停止等待AI
-    }, [playerColor]);
 
-    // 更新棋盘状态并根据当前玩家的颜色更新 currentPlayer
-    const handleUpdateBoard = useCallback(({board: newBoard, next_turn}) => {
-        console.log("handleUpdateBoard next_turn", next_turn);
-        setCurrentPlayer(next_turn); // 后端返回当前回合的玩家
-        setBoard(newBoard);
-        setIsWaitingForAI(false); // AI已下完
-    }, []);
 
+    // 初始化WebSocket连接 - 只在组件挂载时执行一次
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
         
@@ -54,6 +39,13 @@ const Game = React.memo(() => {
             return;
         }
 
+        // 避免重复连接
+        if (socketRef.current && socketRef.current.connected) {
+            console.log("Socket already connected, skipping initialization");
+            return;
+        }
+
+        console.log("Initializing WebSocket connection");
         socketRef.current = io(config.SOCKET_URL, {
             query: {token: jwtToken},
             reconnection: true,           // 启用重连
@@ -65,14 +57,20 @@ const Game = React.memo(() => {
 
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
+            setSocketConnected(true);
         });
 
         socketRef.current.on("disconnect", (reason) => {
             console.log("Disconnected from Socket.IO server, reason:", reason);
+            setSocketConnected(false);
+            
             if (reason === 'io server disconnect') {
                 // 服务器主动断开连接，可能是token过期
                 console.log("Server disconnected, possibly due to token expiry");
                 window.dispatchEvent(new CustomEvent('tokenExpired'));
+            } else if (reason === 'transport close' || reason === 'transport error') {
+                // 网络问题，尝试重连
+                console.log("Network disconnection, will attempt to reconnect");
             }
         });
 
@@ -82,6 +80,7 @@ const Game = React.memo(() => {
                 console.log("WebSocket connection failed due to authentication");
                 window.dispatchEvent(new CustomEvent('tokenExpired'));
             }
+            setSocketConnected(false);
         });
 
         socketRef.current.on("reconnect", (attemptNumber) => {
@@ -103,15 +102,34 @@ const Game = React.memo(() => {
                 console.log("Authentication error from server");
                 window.dispatchEvent(new CustomEvent('tokenExpired'));
             }
+            setSocketConnected(false);
         });
 
-        socketRef.current.on("gameOver", handleGameOver);
-        socketRef.current.on("updateBoard", handleUpdateBoard);
+        // 使用ref来绑定事件处理器，避免依赖问题
+        const handleGameOverEvent = (message) => {
+            console.log("Game Over - Winner:", message.winner);
+            setWinner(message.winner);
+            setFinalWinner(message.winner);
+            setGameOver(true);
+            setShowWinnerModal(true);
+            setIsWaitingForAI(false);
+        };
+
+        const handleUpdateBoardEvent = ({board: newBoard, next_turn}) => {
+            console.log("Board updated - Next turn:", next_turn);
+            setCurrentPlayer(next_turn);
+            setBoard(newBoard);
+            setIsWaitingForAI(false);
+        };
+
+        socketRef.current.on("gameOver", handleGameOverEvent);
+        socketRef.current.on("updateBoard", handleUpdateBoardEvent);
 
         return () => {
             if (socketRef.current) {
-                socketRef.current.off("gameOver", handleGameOver);
-                socketRef.current.off("updateBoard", handleUpdateBoard);
+                console.log("Cleaning up WebSocket connection");
+                socketRef.current.off("gameOver");
+                socketRef.current.off("updateBoard");
                 socketRef.current.off("connect");
                 socketRef.current.off("disconnect");
                 socketRef.current.off("connect_error");
@@ -122,7 +140,7 @@ const Game = React.memo(() => {
                 socketRef.current.disconnect();
             }
         };
-    }, [handleGameOver, handleUpdateBoard]);
+    }, []); // 空依赖数组，只在组件挂载时执行一次
 
     const handleMove = useCallback((x, y, player, sendToServer = true) => {
         if (x < 0 || x >= 15 || y < 0 || y >= 15 || !board[x]) {
@@ -212,20 +230,25 @@ const Game = React.memo(() => {
 
     // 只关闭弹窗，不重置游戏状态
     const handleCloseModal = () => {
-        setWinner(null);  // 只清除获胜者显示，关闭弹窗
+        setShowWinnerModal(false);  // 只关闭弹窗
+        // 保持 gameOver=true, finalWinner 不变，这样主页面会显示正确的获胜者
     };
 
     // 开始新游戏，重置所有状态
     const handleNewGame = () => {
         // 先通知后端重置游戏
-        socketRef.current.emit("resetGame");
+        if (socketRef.current && socketRef.current.connected) {
+            socketRef.current.emit("resetGame");
+        }
         
         // 重置游戏状态
         setBoard(Array(15).fill(null).map(() => Array(15).fill(null)));
         setPlayerColor(null);  // 重置玩家颜色，显示选择页面
         setCurrentPlayer(null);
         setGameOver(false);
-        setWinner(null);  // 最后再清除获胜者显示
+        setWinner(null);
+        setFinalWinner(null);  // 清除最终获胜者
+        setShowWinnerModal(false);  // 关闭弹窗
     };
 
     const handleColorSelection = (color) => {
@@ -238,31 +261,27 @@ const Game = React.memo(() => {
             setCurrentPlayer("black"); // AI 使用黑子先手
             setIsWaitingForAI(true); // 设置等待AI状态
             
-            // 确保 WebSocket 连接存在
-            if (socketRef.current && socketRef.current.connected) {
+            // 确保 WebSocket 连接存在并触发AI第一步
+            console.log("Requesting AI first move, socket connected:", socketConnected);
+            if (socketRef.current && socketConnected) {
+                console.log("Emitting aiFirstMove event");
                 socketRef.current.emit("aiFirstMove"); // 触发AI第一步
             } else {
-                console.error("WebSocket connection lost, attempting to reconnect...");
-                // 重新连接 WebSocket
-                const jwtToken = localStorage.getItem("jwtToken");
-                socketRef.current = io(config.SOCKET_URL, {
-                    query: {token: jwtToken},
-                });
-                
-                // 重新绑定事件处理器
-                socketRef.current.on("connect", () => {
-                    console.log("Reconnected to Socket.IO server");
-                    socketRef.current.emit("aiFirstMove"); // 重新连接后触发AI第一步
-                });
-                
-                socketRef.current.on("gameOver", handleGameOver);
-                socketRef.current.on("updateBoard", handleUpdateBoard);
+                console.warn("WebSocket not connected, will retry when connection is established");
+                // 设置一个短暂的延迟重试
+                setTimeout(() => {
+                    if (socketRef.current && socketRef.current.connected) {
+                        console.log("Retrying aiFirstMove after delay");
+                        socketRef.current.emit("aiFirstMove");
+                    } else {
+                        console.error("WebSocket still not connected after delay");
+                    }
+                }, 1000);
             }
         }
     };
 
     const renderBoard = () => {
-        console.log("Rendering the board");
         return (
             <div 
                 className="gomoku-game-board" 
@@ -353,20 +372,22 @@ const Game = React.memo(() => {
                     <div className="winner-announcement">
                         <div className="winner-crown">👑</div>
                         <h3 className="winner-text">
-                            {winner === playerColor ? (
+                            {finalWinner && finalWinner === playerColor ? (
                                 <span className="winner-you">Congratulations! You Won!</span>
-                            ) : (
+                            ) : finalWinner && finalWinner !== playerColor && finalWinner !== '' ? (
                                 <span className="winner-ai">AI Wins This Round!</span>
+                            ) : (
+                                <span className="winner-unknown">Game Over - Unknown Result</span>
                             )}
                         </h3>
                         <div className="winner-subtext">
-                            {winner === playerColor ? 
+                            {finalWinner && finalWinner === playerColor ? 
                                 "Your strategic brilliance has led you to victory!" :
-                                "Don't give up! Challenge the AI again!"}
+                                finalWinner && finalWinner !== playerColor && finalWinner !== '' ?
+                                "Don't give up! Challenge the AI again!" :
+                                "Something went wrong with the game result."}
                         </div>
-                        <div className="debug-info" style={{fontSize: '12px', color: '#666', marginTop: '10px'}}>
-                            Debug: winner="{winner}", playerColor="{playerColor}", match={winner === playerColor ? 'YES' : 'NO'}
-                        </div>
+
                     </div>
                     <div className="game-board-container">
                         {renderBoard()}
@@ -381,7 +402,9 @@ const Game = React.memo(() => {
             ) : (
                 <>
                     <h3 className="dynamic-player-tip">
-                        {isWaitingForAI ? (
+                        {!socketConnected ? (
+                            <>🔴 Connection Lost - Reconnecting<span className="dot-flash">...</span></>
+                        ) : isWaitingForAI ? (
                             <>AI ({currentPlayer === playerColor ? (playerColor === "black" ? "white" : "black") : currentPlayer}) is playing<span className="dot-flash">...</span></>
                         ) : (
                             currentPlayer === playerColor ? (
@@ -396,7 +419,7 @@ const Game = React.memo(() => {
                     </div>
                 </>
             )}
-            {gameOver && winner && <WinnerModal
+            {showWinnerModal && winner && <WinnerModal
                 winner={winner}
                 playerColor={playerColor}
                 onClose={handleCloseModal}
