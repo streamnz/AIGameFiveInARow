@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import random
 
 class Llama3AI:
     def __init__(self):
@@ -267,97 +268,261 @@ Response:"""
             print(f"需要封堵: {len(blocking_positions)} 个位置")
             for i, (x, y, count, desc) in enumerate(blocking_positions[:3]):
                 print(f"  封堵{i+1}: ({x},{y}) - {desc}")
+
+        # 计算当前局面的空位数量，用于判断游戏阶段
+        empty_count = sum(1 for i in range(15) for j in range(15) if board[i][j] == '')
+        is_early_game = empty_count > 180  # 开局阶段
+        is_mid_game = 100 < empty_count <= 180  # 中局阶段
+        is_late_game = empty_count <= 100  # 残局阶段
         
         # 策略优先级
         # 1. 如果我方能立即获胜（5连），立即下
-        for x, y, count, desc, is_alive in opportunities:
-            if count >= 5:
-                print(f"🎉 立即获胜: ({x},{y}) - {desc}")
-                return x, y
+        winning_moves = [(x, y) for x, y, count, desc, is_alive in opportunities if count >= 5]
+        if winning_moves:
+            x, y = random.choice(winning_moves)  # 如果有多个制胜点，随机选择
+            print(f"🎉 立即获胜: ({x},{y})")
+            return x, y
         
         # 2. 如果对手能立即获胜（5连），必须封堵
-        for x, y, count, desc, is_alive in threats:
-            if count >= 5:
-                print(f"🚨 紧急封堵: ({x},{y}) - {desc}")
-                return x, y
+        critical_threats = [(x, y) for x, y, count, desc, is_alive in threats if count >= 5]
+        if critical_threats:
+            x, y = random.choice(critical_threats)  # 如果有多个威胁点，随机选择
+            print(f"🚨 紧急封堵: ({x},{y})")
+            return x, y
         
         # 3. 如果我方能形成活四，优先考虑
-        for x, y, count, desc, is_alive in opportunities:
-            if count == 4 and is_alive:
-                print(f"⚡ 活四必胜: ({x},{y}) - {desc}")
-                return x, y
+        alive_four_moves = [(x, y) for x, y, count, desc, is_alive in opportunities if count == 4 and is_alive]
+        if alive_four_moves:
+            x, y = random.choice(alive_four_moves)
+            print(f"⚡ 活四必胜: ({x},{y})")
+            return x, y
         
         # 4. 如果对手能形成活四，必须封堵
-        for x, y, count, desc, is_alive in threats:
-            if count == 4 and is_alive:
-                print(f"🛡️ 封堵活四: ({x},{y}) - {desc}")
-                return x, y
+        alive_four_threats = [(x, y) for x, y, count, desc, is_alive in threats if count == 4 and is_alive]
+        if alive_four_threats:
+            x, y = random.choice(alive_four_threats)
+            print(f"🛡️ 封堵活四: ({x},{y})")
+            return x, y
         
-        # 5. 如果我方能形成死四，也要考虑
-        for x, y, count, desc, is_alive in opportunities:
-            if count == 4 and not is_alive:
-                print(f"🔥 死四威胁: ({x},{y}) - {desc}")
-                return x, y
-        
-        # 6. 如果对手能形成死四，需要封堵
-        for x, y, count, desc, is_alive in threats:
-            if count == 4 and not is_alive:
-                print(f"🛡️ 封堵死四: ({x},{y}) - {desc}")
-                return x, y
-        
-        # 7. 双活三叉攻（非常强的进攻手段）
+        # 5. 双活三叉攻（非常强的进攻手段）
         if fork_opportunities:
-            x, y, count, desc = fork_opportunities[0]
-            print(f"🗡️ 双活三叉攻: ({x},{y}) - {desc}")
-            return x, y
-        
-        # 8. 封堵对手的活三
-        if blocking_positions:
-            x, y, count, desc = blocking_positions[0]
-            print(f"🛡️ 封堵活三: ({x},{y}) - {desc}")
-            return x, y
-        
-        # 9. 我方活三进攻
-        for x, y, count, desc, is_alive in opportunities:
-            if count == 3 and is_alive:
-                print(f"⚔️ 活三进攻: ({x},{y}) - {desc}")
+            # 在开局和中局更倾向于选择叉攻
+            if is_early_game or is_mid_game:
+                x, y = random.choice(fork_opportunities[:3])[:2]  # 从前三个叉攻中随机选择
+                print(f"🗡️ 双活三叉攻: ({x},{y})")
                 return x, y
         
-        # 10. 我方死三也有一定价值
-        for x, y, count, desc, is_alive in opportunities:
-            if count == 3 and not is_alive:
-                print(f"🔨 死三布局: ({x},{y}) - {desc}")
+        # 6. 如果对手有活三，必须封堵
+        alive_three_threats = [(x, y) for x, y, count, desc, is_alive in threats if count == 3 and is_alive]
+        if alive_three_threats:
+            # 如果有多个活三威胁，优先选择能同时防守和进攻的点
+            best_blocking_moves = []
+            for bx, by in alive_three_threats:
+                # 评估这个防守点的进攻价值
+                attack_value = self._evaluate_attack_value(board, bx, by, current_player)
+                best_blocking_moves.append((bx, by, attack_value))
+            
+            if best_blocking_moves:
+                # 按进攻价值排序，从最高的开始选择
+                best_blocking_moves.sort(key=lambda x: x[2], reverse=True)
+                top_moves = [move for move in best_blocking_moves if move[2] >= best_blocking_moves[0][2] * 0.8]
+                x, y, _ = random.choice(top_moves)  # 从最好的几个中随机选择
+                print(f"🛡️ 封堵活三: ({x},{y})")
                 return x, y
         
-        # 11. 封堵对手的活二
-        for x, y, count, desc, is_alive in threats:
-            if count == 2 and is_alive:
-                print(f"🛡️ 封堵活二: ({x},{y}) - {desc}")
+        # 7. 我方活三进攻
+        alive_three_moves = [(x, y) for x, y, count, desc, is_alive in opportunities if count == 3 and is_alive]
+        if alive_three_moves and (is_early_game or is_mid_game):
+            # 评估每个活三的进攻价值
+            attack_moves = []
+            for ax, ay in alive_three_moves:
+                attack_value = self._evaluate_attack_value(board, ax, ay, current_player)
+                attack_moves.append((ax, ay, attack_value))
+            
+            if attack_moves:
+                # 按进攻价值排序，选择最好的几个
+                attack_moves.sort(key=lambda x: x[2], reverse=True)
+                top_moves = [move for move in attack_moves if move[2] >= attack_moves[0][2] * 0.8]
+                x, y, _ = random.choice(top_moves)
+                print(f"⚔️ 活三进攻: ({x},{y})")
                 return x, y
         
-        # 12. 我方活二发展
-        for x, y, count, desc, is_alive in opportunities:
-            if count == 2 and is_alive:
-                print(f"🌱 活二发展: ({x},{y}) - {desc}")
+        # 8. 在没有明显战术机会时，进行位置评估
+        if is_early_game:
+            # 开局更注重布局和控制中心
+            center_moves = self._get_center_control_moves(board)
+            if center_moves:
+                x, y = random.choice(center_moves[:3])  # 从最好的三个位置中随机选择
+                print(f"🎯 布局控制中心: ({x},{y})")
+                return x, y
+        elif is_mid_game:
+            # 中局注重发展和防守平衡
+            balanced_moves = self._get_balanced_moves(board, current_player)
+            if balanced_moves:
+                x, y = random.choice(balanced_moves[:3])
+                print(f"⚖️ 均衡发展: ({x},{y})")
+                return x, y
+        else:
+            # 残局更注重具体战术
+            tactical_moves = self._get_tactical_moves(board, current_player)
+            if tactical_moves:
+                x, y = random.choice(tactical_moves[:3])
+                print(f"📊 战术选择: ({x},{y})")
                 return x, y
         
-        # 13. 如果没有明显的战术机会，选择位置价值最高的点
-        print("📊 评估位置价值...")
+        # 如果上述策略都没有找到合适的位置，使用综合评估
         best_positions = []
         for i in range(15):
             for j in range(15):
                 if board[i][j] == '':
                     value = self._evaluate_position_value(board, i, j)
+                    # 添加随机扰动
+                    value += random.uniform(-5, 5)
                     best_positions.append((i, j, value))
         
         if best_positions:
             best_positions.sort(key=lambda x: x[2], reverse=True)
-            x, y, value = best_positions[0]
-            print(f"🎯 最佳位置价值: ({x},{y}) - 价值{value}")
+            # 从最高分值的前几个位置中随机选择
+            top_positions = [pos for pos in best_positions if pos[2] >= best_positions[0][2] * 0.9]
+            x, y, value = random.choice(top_positions[:5])  # 从前5个最佳位置中随机选择
+            print(f"🎯 综合评估位置: ({x},{y}) - 价值{value:.2f}")
             return x, y
         
         print("📊 无明显策略，使用AI分析")
         return None  # 没有明显策略，让AI自己分析
+
+    def _evaluate_attack_value(self, board, x, y, player_color):
+        """评估某个位置的进攻价值"""
+        value = 0
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+        
+        # 模拟在此位置下棋
+        board_copy = [row[:] for row in board]
+        board_copy[x][y] = player_color
+        
+        # 计算在各个方向上的发展潜力
+        for dx, dy in directions:
+            # 检查连子数量
+            count = self._count_line(board_copy, x, y, dx, dy, player_color)
+            # 检查是否为活子
+            is_alive = self._is_alive_line(board_copy, x, y, dx, dy, player_color)
+            
+            # 根据连子数量和活度给分
+            if is_alive:
+                value += count * 10  # 活子价值更高
+            else:
+                value += count * 5   # 死子也有一定价值
+            
+            # 检查周围是否有己方棋子（有助于形成更复杂的局面）
+            for d in range(-2, 3):
+                nx, ny = x + dx * d, y + dy * d
+                if 0 <= nx < 15 and 0 <= ny < 15 and board[nx][ny] == player_color:
+                    value += 2
+        
+        return value
+
+    def _get_center_control_moves(self, board):
+        """获取控制中心的最佳位置"""
+        moves = []
+        center_positions = [
+            (7, 7),  # 天元
+            (6, 6), (6, 7), (6, 8),  # 中心区域
+            (7, 6), (7, 8),
+            (8, 6), (8, 7), (8, 8),
+            (5, 5), (5, 7), (5, 9),  # 次中心区域
+            (7, 5), (7, 9),
+            (9, 5), (9, 7), (9, 9)
+        ]
+        
+        for x, y in center_positions:
+            if board[x][y] == '':
+                value = 20 - (abs(x - 7) + abs(y - 7))  # 离中心越近价值越高
+                moves.append((x, y, value))
+        
+        moves.sort(key=lambda x: x[2], reverse=True)
+        return [(x, y) for x, y, _ in moves]
+
+    def _get_balanced_moves(self, board, player_color):
+        """获取平衡发展的位置"""
+        moves = []
+        for i in range(15):
+            for j in range(15):
+                if board[i][j] == '':
+                    attack_value = self._evaluate_attack_value(board, i, j, player_color)
+                    defense_value = self._evaluate_defense_value(board, i, j, player_color)
+                    # 在中局，我们希望找到攻防都不错的位置
+                    balance_value = min(attack_value, defense_value) * 2 + max(attack_value, defense_value)
+                    moves.append((i, j, balance_value))
+        
+        moves.sort(key=lambda x: x[2], reverse=True)
+        return [(x, y) for x, y, _ in moves]
+
+    def _get_tactical_moves(self, board, player_color):
+        """获取战术位置（主要用于残局）"""
+        moves = []
+        for i in range(15):
+            for j in range(15):
+                if board[i][j] == '':
+                    # 在残局，我们更关注直接的战术价值
+                    tactical_value = self._evaluate_tactical_value(board, i, j, player_color)
+                    moves.append((i, j, tactical_value))
+        
+        moves.sort(key=lambda x: x[2], reverse=True)
+        return [(x, y) for x, y, _ in moves]
+
+    def _evaluate_defense_value(self, board, x, y, player_color):
+        """评估某个位置的防守价值"""
+        value = 0
+        opponent_color = 'white' if player_color == 'black' else 'black'
+        
+        # 模拟在此位置下棋
+        board_copy = [row[:] for row in board]
+        board_copy[x][y] = player_color
+        
+        # 检查是否能阻止对手的连线
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+        for dx, dy in directions:
+            # 检查对手在这个位置的潜在威胁
+            opponent_count = self._count_line(board, x, y, dx, dy, opponent_color)
+            is_alive = self._is_alive_line(board, x, y, dx, dy, opponent_color)
+            
+            # 根据威胁程度给分
+            if is_alive:
+                value += opponent_count * 15  # 阻止活子威胁
+            else:
+                value += opponent_count * 8   # 阻止死子威胁
+        
+        return value
+
+    def _evaluate_tactical_value(self, board, x, y, player_color):
+        """评估某个位置的战术价值（主要用于残局）"""
+        value = 0
+        opponent_color = 'white' if player_color == 'black' else 'black'
+        
+        # 攻击价值
+        attack_value = self._evaluate_attack_value(board, x, y, player_color)
+        # 防守价值
+        defense_value = self._evaluate_defense_value(board, x, y, player_color)
+        
+        # 在残局，我们更重视能形成直接威胁的位置
+        value = max(attack_value, defense_value) * 1.5
+        
+        # 检查是否能形成多重威胁
+        board_copy = [row[:] for row in board]
+        board_copy[x][y] = player_color
+        
+        # 计算此位置能形成的威胁数量
+        threats_count = 0
+        for dx, dy in [(0, 1), (1, 0), (1, 1), (1, -1)]:
+            count = self._count_line(board_copy, x, y, dx, dy, player_color)
+            is_alive = self._is_alive_line(board_copy, x, y, dx, dy, player_color)
+            if count >= 3 and is_alive:
+                threats_count += 1
+        
+        # 多重威胁的价值很高
+        value += threats_count * 20
+        
+        return value
 
     def get_move(self, board, current_player):
         """获取 Llama3 AI 的下一步移动"""
