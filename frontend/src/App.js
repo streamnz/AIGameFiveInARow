@@ -6,6 +6,8 @@ import RegisterModal from './component/RegisterModal';
 import Navbar from './component/Navbar';
 import LandingPage from './component/LandingPage';
 import Settings from './component/Settings';
+import About from './component/About';
+import Resume from './component/Resume';
 import {parseJwt} from './component/jwt_util';
 import Game from './component/Game';
 import {AuthContext, AuthProvider} from './context/AuthContext';
@@ -67,6 +69,12 @@ function App() {
                 
                 {/* 设置页面 */}
                 <Route path="/settings" element={<Settings/>}/>
+                
+                {/* About页面 */}
+                <Route path="/about" element={<About/>}/>
+                
+                {/* Resume页面 */}
+                <Route path="/resume" element={<Resume/>}/>
             </Routes>
 
             {/* 登录模态框 */}

@@ -29,12 +29,14 @@ function Navbar({ onLoginClick, onRegisterClick }) {
                     // 如果用户已登录，显示 Welcome 和 Settings
                     <div className="user-info">
                         <span>Kia Ora, {loggedInUser.username}!</span>
+                        <button className="navbar-btn about-btn" onClick={() => navigate('/about')}>About</button>
                         <button className="navbar-btn settings-btn" onClick={() => navigate('/settings')}>Settings</button>
                         <button className="navbar-btn logout-btn" onClick={handleLogoutAndRedirect}>Logout</button>
                     </div>
                 ) : (
                     // 如果用户未登录，显示 Login 和 Register
                     <div className="auth-buttons">
+                        <button className="navbar-btn about-btn" onClick={() => navigate('/about')}>About</button>
                         <button className="navbar-btn navbar-login-btn" onClick={onLoginClick}>Login</button>
                         <button className="navbar-btn navbar-register-btn" onClick={onRegisterClick}>Register</button>
                     </div>

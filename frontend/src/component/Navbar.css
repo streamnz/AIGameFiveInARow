@@ -187,6 +187,20 @@
   transform: translateY(-1px);
 }
 
+/* About按钮 */
+.about-btn {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.about-btn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
 /* 登出按钮 */
 .logout-btn {
   background: rgba(239, 68, 68, 0.1);
