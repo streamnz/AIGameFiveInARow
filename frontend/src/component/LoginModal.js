@@ -2,16 +2,15 @@ import React, {useState} from 'react';
 import './LoginModal.css';
 //import axios from 'axios';
 import apiClient from '../interceptor/axiosConfig';
-
-
 import { parseJwt } from './jwt_util';
-
+import { useNavigate } from 'react-router-dom';
 
 const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);  // 引入 loading 状态
+    const navigate = useNavigate();
 
     // 正则表达式用于验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,6 +55,8 @@ const LoginModal = ({isOpen, onClose,onLoginSuccess}) => {
             setError('');
             // 成功登录后关闭模态框
             onClose();
+            // 登录成功后跳转到首页
+            navigate('/');
         } catch (error) {
             setError('User name or password wrong!');
         } finally {

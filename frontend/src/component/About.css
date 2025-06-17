@@ -9,6 +9,7 @@
   perspective: 1000px;
   transform-style: preserve-3d;
   animation: fadeIn 0.3s ease-out;
+  padding-top: 80px;
 }
 
 @keyframes fadeIn {
@@ -453,6 +454,9 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .about-page {
+    padding-top: 60px;
+  }
   .about-content {
     padding: 30px 20px;
   }
