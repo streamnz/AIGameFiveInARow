@@ -4,10 +4,11 @@ import config from '../config/config';
 
 // 创建axios实例
 const apiClient = axios.create({
-  baseURL: config.API_BASE_URL, // 使用统一配置
+  baseURL: config.API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true  // 允许跨域请求携带凭证
 });
 
 // 请求拦截器：判断是否需要token
