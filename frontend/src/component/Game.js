@@ -147,14 +147,22 @@ const Game = React.memo(() => {
         setHoveredPosition(null);
     }, []);
 
-    // 关闭模态框，重置游戏状态并显示颜色选择页面
+    // 只关闭弹窗，不重置游戏状态
     const handleCloseModal = () => {
-        setGameOver(false);
-        setWinner(null);
+        setWinner(null);  // 只清除获胜者显示，关闭弹窗
+    };
+
+    // 开始新游戏，重置所有状态
+    const handleNewGame = () => {
+        // 先通知后端重置游戏
+        socketRef.current.emit("resetGame");
+        
+        // 重置游戏状态
         setBoard(Array(15).fill(null).map(() => Array(15).fill(null)));
         setPlayerColor(null);  // 重置玩家颜色，显示选择页面
         setCurrentPlayer(null);
-        socketRef.current.emit("resetGame");  // 通知后端重置游戏
+        setGameOver(false);
+        setWinner(null);  // 最后再清除获胜者显示
     };
 
     const handleColorSelection = (color) => {
@@ -163,9 +171,30 @@ const Game = React.memo(() => {
             // 玩家选择黑子，自己先下
             setCurrentPlayer("black");
         } else if (color === "white") {
-            // 玩家选择白子，AI先下，设置玩家为黑子
-            setCurrentPlayer("white");
-            socketRef.current.emit("aiFirstMove");
+            // 玩家选择白子，AI先下
+            setCurrentPlayer("black"); // AI 使用黑子先手
+            setIsWaitingForAI(true); // 设置等待AI状态
+            
+            // 确保 WebSocket 连接存在
+            if (socketRef.current && socketRef.current.connected) {
+                socketRef.current.emit("aiFirstMove"); // 触发AI第一步
+            } else {
+                console.error("WebSocket connection lost, attempting to reconnect...");
+                // 重新连接 WebSocket
+                const jwtToken = localStorage.getItem("jwtToken");
+                socketRef.current = io(config.SOCKET_URL, {
+                    query: {token: jwtToken},
+                });
+                
+                // 重新绑定事件处理器
+                socketRef.current.on("connect", () => {
+                    console.log("Reconnected to Socket.IO server");
+                    socketRef.current.emit("aiFirstMove"); // 重新连接后触发AI第一步
+                });
+                
+                socketRef.current.on("gameOver", handleGameOver);
+                socketRef.current.on("updateBoard", handleUpdateBoard);
+            }
         }
     };
 
@@ -258,26 +287,52 @@ const Game = React.memo(() => {
             <h2>Gomoku Game</h2>
             {gameOver ? (
                 <>
-                    <h3 className="winner-text">Winner: {winner}</h3>
+                    <div className="winner-announcement">
+                        <div className="winner-crown">👑</div>
+                        <h3 className="winner-text">
+                            {winner === playerColor ? (
+                                <span className="winner-you">Congratulations! You Won!</span>
+                            ) : (
+                                <span className="winner-ai">AI Wins This Round!</span>
+                            )}
+                        </h3>
+                        <div className="winner-subtext">
+                            {winner === playerColor ? 
+                                "Your strategic brilliance has led you to victory!" :
+                                "Don't give up! Challenge the AI again!"}
+                        </div>
+                    </div>
+                    <div className="game-board-container">
+                        {renderBoard()}
+                        <button
+                            className="new-game-button"
+                            onClick={handleNewGame}
+                        >
+                            Start New Game
+                        </button>
+                    </div>
                 </>
             ) : (
-                <h3 className="dynamic-player-tip">
-                    {isWaitingForAI ? (
-                        <>AI ({currentPlayer === playerColor ? (playerColor === "black" ? "white" : "black") : currentPlayer}) is playing<span className="dot-flash">...</span></>
-                    ) : (
-                        currentPlayer === playerColor ? (
-                            <>You ({playerColor}) is playing<span className="dot-flash">...</span></>
+                <>
+                    <h3 className="dynamic-player-tip">
+                        {isWaitingForAI ? (
+                            <>AI ({currentPlayer === playerColor ? (playerColor === "black" ? "white" : "black") : currentPlayer}) is playing<span className="dot-flash">...</span></>
                         ) : (
-                            <>AI ({currentPlayer}) is playing<span className="dot-flash">...</span></>
-                        )
-                    )}
-                </h3>
+                            currentPlayer === playerColor ? (
+                                <>You ({playerColor}) is playing<span className="dot-flash">...</span></>
+                            ) : (
+                                <>AI ({currentPlayer}) is playing<span className="dot-flash">...</span></>
+                            )
+                        )}
+                    </h3>
+                    <div className="game-board-container">
+                        {renderBoard()}
+                    </div>
+                </>
             )}
-            {renderBoard()}
-            {/* 渲染 WinnerModal */}
-            {gameOver && <WinnerModal
+            {gameOver && winner && <WinnerModal
                 winner={winner}
-                playerColor={playerColor}  // 传递玩家颜色
+                playerColor={playerColor}
                 onClose={handleCloseModal}
             />}
         </div>
