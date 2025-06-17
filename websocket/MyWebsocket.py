@@ -51,6 +51,12 @@ def handle_connect():
                 }
     except Exception as e:
         print(f"Connection error: {str(e)}")
+        if "expired" in str(e).lower():
+            print("Token has expired, disconnecting client")
+            emit('error', {'message': 'Token has expired, please login again'})
+        else:
+            print(f"Invalid token or other error: {str(e)}")
+            emit('error', {'message': 'Authentication failed'})
         disconnect()
 
 # 客户端断开连接时的处理逻辑

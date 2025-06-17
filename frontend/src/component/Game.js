@@ -45,25 +45,82 @@ const Game = React.memo(() => {
 
     useEffect(() => {
         const jwtToken = localStorage.getItem("jwtToken");
+        
+        // 检查token是否存在
+        if (!jwtToken) {
+            console.log('No JWT token found, redirecting to login');
+            // 触发登录模态框
+            window.dispatchEvent(new CustomEvent('tokenExpired'));
+            return;
+        }
+
         socketRef.current = io(config.SOCKET_URL, {
             query: {token: jwtToken},
+            reconnection: true,           // 启用重连
+            reconnectionAttempts: 5,      // 最大重连次数
+            reconnectionDelay: 1000,      // 重连延迟
+            reconnectionDelayMax: 5000,   // 最大重连延迟
+            timeout: 20000,               // 连接超时时间
         });
 
         socketRef.current.on("connect", () => {
             console.log("Connected to Socket.IO server");
         });
 
+        socketRef.current.on("disconnect", (reason) => {
+            console.log("Disconnected from Socket.IO server, reason:", reason);
+            if (reason === 'io server disconnect') {
+                // 服务器主动断开连接，可能是token过期
+                console.log("Server disconnected, possibly due to token expiry");
+                window.dispatchEvent(new CustomEvent('tokenExpired'));
+            }
+        });
+
+        socketRef.current.on("connect_error", (error) => {
+            console.error("Connection error:", error);
+            if (error.message && error.message.includes('401')) {
+                console.log("WebSocket connection failed due to authentication");
+                window.dispatchEvent(new CustomEvent('tokenExpired'));
+            }
+        });
+
+        socketRef.current.on("reconnect", (attemptNumber) => {
+            console.log("Reconnected after", attemptNumber, "attempts");
+        });
+
+        socketRef.current.on("reconnect_error", (error) => {
+            console.error("Reconnection error:", error);
+        });
+
+        socketRef.current.on("reconnect_failed", () => {
+            console.error("Failed to reconnect after maximum attempts");
+            window.dispatchEvent(new CustomEvent('tokenExpired'));
+        });
+
+        socketRef.current.on("error", (error) => {
+            console.error("Socket error:", error);
+            if (error.message && (error.message.includes('expired') || error.message.includes('Authentication failed'))) {
+                console.log("Authentication error from server");
+                window.dispatchEvent(new CustomEvent('tokenExpired'));
+            }
+        });
+
         socketRef.current.on("gameOver", handleGameOver);
         socketRef.current.on("updateBoard", handleUpdateBoard);
 
-        socketRef.current.on("disconnect", () => {
-            console.log("Disconnected from Socket.IO server");
-        });
-
         return () => {
-            socketRef.current.off("gameOver", handleGameOver);
-            socketRef.current.off("updateBoard", handleUpdateBoard);
-            socketRef.current.disconnect();
+            if (socketRef.current) {
+                socketRef.current.off("gameOver", handleGameOver);
+                socketRef.current.off("updateBoard", handleUpdateBoard);
+                socketRef.current.off("connect");
+                socketRef.current.off("disconnect");
+                socketRef.current.off("connect_error");
+                socketRef.current.off("reconnect");
+                socketRef.current.off("reconnect_error");
+                socketRef.current.off("reconnect_failed");
+                socketRef.current.off("error");
+                socketRef.current.disconnect();
+            }
         };
     }, [handleGameOver, handleUpdateBoard]);
 
