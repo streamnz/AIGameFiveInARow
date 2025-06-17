@@ -59,6 +59,102 @@ const LandingPage = ({ onGetStarted, loggedInUser }) => {
                     </div>
                 </div>
 
+                {/* What's Next Section */}
+                <div className="whats-next-section">
+                    <div className="section-header">
+                        <span className="section-tag rocket-tag">🚀 What's Next</span>
+                        <h2 className="section-title gradient-text">
+                            Building the Future of Web3 Gaming
+                        </h2>
+                        <p className="section-subtitle">
+                            We're designing a Web3-native platform where creativity meets decentralization
+                        </p>
+                    </div>
+
+                    {/* Genesis Airdrop Banner */}
+                    <div className="genesis-banner genesis-banner-3d">
+                        <div className="banner-content">
+                            <div className="banner-icon">🎁</div>
+                            <div className="banner-text">
+                                <h3>Genesis Airdrop Now Live</h3>
+                                <p>Defeat our AI in battle and earn exclusive reward tokens!</p>
+                                <span className="banner-highlight">
+                                    Early tokens will be redeemable when blockchain integration goes live
+                                </span>
+                            </div>
+                            <div className="banner-cta">
+                                <button className="airdrop-button" onClick={onGetStarted}>
+                                    Start Earning
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Vision Cards */}
+                    <div className="vision-section">
+                        <div className="vision-header">
+                            <span className="section-tag">🔮 Our Vision</span>
+                        </div>
+                        <div className="vision-grid">
+                            <div className="vision-card vision-card-3d">
+                                <div className="vision-icon">🔄</div>
+                                <h4>Decentralized Reward Tokens</h4>
+                                <p>Earn tokens by interacting with the platform — trade them freely with others via peer-to-peer transactions.</p>
+                            </div>
+                            <div className="vision-card vision-card-3d">
+                                <div className="vision-icon">🏛️</div>
+                                <h4>Centralized Exchange Access</h4>
+                                <p>An easy-to-use exchange inside our platform to help users buy, sell, or convert their tokens securely.</p>
+                            </div>
+                            <div className="vision-card vision-card-3d">
+                                <div className="vision-icon">📚</div>
+                                <h4>NovelVerse.io – Read. Watch. Earn.</h4>
+                                <p>AI-generated novel and video platform rewarding users with reading tokens for immersive stories and content.</p>
+                            </div>
+                            <div className="vision-card vision-card-3d">
+                                <div className="vision-icon">⛓️</div>
+                                <h4>Cross-Chain Support</h4>
+                                <p>Seamless swap between STREAM tokens and major cryptocurrencies like ETH, BTC, or USDT.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Token Utility Section */}
+                    <div className="token-utility-section">
+                        <div className="utility-header">
+                            <span className="section-tag">🎯 Token Utility</span>
+                            <h3>More Than Just a Coin</h3>
+                        </div>
+                        <div className="utility-grid">
+                            <div className="utility-item utility-item-3d">
+                                <div className="utility-icon">🔓</div>
+                                <span>Unlock novel chapters, videos, and game modes</span>
+                            </div>
+                            <div className="utility-item utility-item-3d">
+                                <div className="utility-icon">🤖</div>
+                                <span>Access premium AI characters and storylines</span>
+                            </div>
+                            <div className="utility-item utility-item-3d">
+                                <div className="utility-icon">📈</div>
+                                <span>Trade or hold for future platform growth</span>
+                            </div>
+                            <div className="utility-item utility-item-3d">
+                                <div className="utility-icon">🌐</div>
+                                <span>Participate in a self-sustaining content economy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Closing Message */}
+                    <div className="closing-section">
+                        <div className="closing-content">
+                            <div className="closing-icon">🌱</div>
+                            <h3>We're just getting started</h3>
+                            <p>Stay tuned and be among the first to shape the next generation of decentralized storytelling and digital experiences.</p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Features showcase area */}
                 <div className="features-section">
                     <div className="features-header">
